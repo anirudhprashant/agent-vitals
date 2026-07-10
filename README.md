@@ -6,9 +6,9 @@
 
 <p>
 <a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-00d992?style=flat-square" alt="License"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.2.1-3d3a39?style=flat-square" alt="Version"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.3.0-3d3a39?style=flat-square" alt="Version"></a>
 &nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/python-3.11%2B-2fd6a1?style=flat-square" alt="Python"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E900-8b949e?style=flat-square" alt="LOC"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E1200-8b949e?style=flat-square" alt="LOC"></a>
 &nbsp;<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-stdio-00d992?style=flat-square" alt="MCP"></a>
 </p>
 
@@ -130,6 +130,35 @@ That's the whole setup. <span style="color:#00d992">30 seconds.</span>
 
 ---
 
+## <span style="color:#00d992">▍</span> Pre-action hooks (v0.3.0)
+
+Priming asks the agent to call vitals. **Hooks refuse the operation** when it hasn't.
+
+```bash
+av hooks install     # one-time setup (~3 seconds)
+av hooks status      # check freshness
+av hooks disable     # temporarily turn off (rename to *.disabled)
+av hooks uninstall   # full removal
+```
+
+After `av hooks install`, the one-liner above is appended to your `~/.bashrc` / `~/.zshrc`. Open a new terminal and `crontab -e` or `systemctl --user enable foo` will be **refused at the OS level** unless an agent (or `av doctor`) refreshed the vitals stamp in the last 60 seconds.
+
+```text
+  ⚡ agent-vitals hook: refused `crontab -e`
+
+  reason:   vitals stamp is 5m12s old — exceeds 60s window.
+  stamp:    5m12s ago
+
+  refresh:  call any vitals tool or run `av doctor`
+  bypass:   VITALS_BYPASS=1 crontab -e
+```
+
+**What's gated:** `crontab -e/-r/-i/<file>/-` and `systemctl --user {enable,disable,start,stop,restart,reload,mask,unmask,daemon-reload,...}`.
+
+**What's NOT gated:** `crontab -l` (reads), `systemctl status / list-* / is-active / show / cat` (reads), and power management (`reboot`, `poweroff`, `suspend`) — a stale stamp must never block a reboot.
+
+**Bypass for emergencies:** `VITALS_BYPASS=1 crontab -e` skips the check.
+
 ## <span style="color:#00d992">▍</span> What `av init` does
 
 ```text
@@ -199,7 +228,9 @@ The table `av init` installs into your priming skill — so the agent knows when
 | User asks "what's broken?" | `vitals_summary` → `shadow_stale` + `burnout_stuck_sessions` |
 
 > [!WARNING]
-> **Honesty note.** Priming isn't enforcement. The SKILL.md puts these triggers in front of the agent's face, but the agent still has to *remember* to follow them. In practice this catches ~30–40% of cases — better than nothing, not a magic bullet. Real enforcement comes in **v0.3.0** via pre-action hooks (e.g. block any cron modification until `shadow_stale` has been called in the last 60 seconds).
+> **Honesty note.** Priming isn't enforcement. The SKILL.md puts these triggers in front of the agent's face, but the agent still has to *remember* to follow them. In practice this catches ~30–40% of cases — better than nothing, not a magic bullet.
+> 
+> **v0.3.0 changes this.** `av hooks install` deploys PATH-level wrappers around `crontab` and `systemctl --user` that *refuse* any mutation when the vitals stamp is older than 60 seconds. Read operations (`crontab -l`, `systemctl status`, etc.) are never gated. See [Pre-action hooks](#pre-action-hooks-v030) below.
 
 ---
 
@@ -257,9 +288,10 @@ typer           ──  CLI
 rich            ──  terminal rendering
 pyyaml          ──  SKILL.md frontmatter parsing
 mcp (FastMCP)   ──  MCP server, stdio transport
+pytest          ──  104 tests across 3 modules
 ```
 
-~900 LOC of Python + the priming `SKILL.md`. MIT licensed.
+~1200 LOC of Python + the priming `SKILL.md` + 104 tests. MIT licensed.
 
 ---
 
@@ -268,7 +300,7 @@ mcp (FastMCP)   ──  MCP server, stdio transport
 - [x] **v0.1.0** — `shadow` + `burnout` CLI commands
 - [x] **v0.2.0** — MCP server + `av init` for 5 host types
 - [x] **v0.2.1** — fix false-positive duplicate detection across hosts
-- [ ] **v0.3.0** — <span style="color:#00d992">**pre-action hooks**</span> that *enforce* vitals calls before infra mutations (not just priming)
+- [x] **v0.3.0** — <span style="color:#00d992">**pre-action hooks**</span> for crontab + systemctl (priming → enforcement, with bypass)
 - [ ] **v0.4.0** — `shadow live` (running agent processes, ps-tree view)
 - [ ] **v0.5.0** — cross-session "agent déjà vu" detector (you researched this codebase 3 weeks ago)
 - [ ] later — burnout trend over time (sparklines per agent)

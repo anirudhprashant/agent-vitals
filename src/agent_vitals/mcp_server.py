@@ -4,6 +4,9 @@ Once registered as an MCP server (in pi / Claude Code / OpenCode / Cursor /
 etc.), any agent can introspect the user's local agent stack with one call.
 
 Run standalone via `av mcp` (stdio transport).
+
+Every tool call also touches the freshness stamp — that's what powers the
+v0.3.0 pre-action hooks.
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from mcp.server.fastmcp import FastMCP
 
 from agent_vitals.burnout import burn_all
 from agent_vitals.scanners import scan_all
+from agent_vitals.stamp import touch
 
 mcp = FastMCP(
     name="agent-vitals",
@@ -25,7 +29,9 @@ mcp = FastMCP(
         "Use burnout_summary and burnout_stuck_sessions to surface abandoned "
         "work and likely-stuck Claude Code sessions. "
         "Call these tools PROACTIVELY: before tasks, after tasks, when stuck, "
-        "or when about to schedule infra work — not only when the user asks."
+        "or when about to schedule infra work — not only when the user asks. "
+        "Your calls refresh the freshness stamp that powers pre-action hooks; "
+        "an agent that never calls vitals triggers refusal of infra mutations."
     ),
     website_url="https://github.com/anirudhprashant/agent-vitals",
 )
@@ -36,6 +42,11 @@ def _j(obj) -> str:
     return json.dumps(obj, indent=2, default=str)
 
 
+def _touch() -> None:
+    """Refresh the freshness stamp so a hook-gated mutation will pass."""
+    touch()
+
+
 @mcp.tool(title="vitals summary")
 def vitals_summary() -> str:
     """One-shot health check for the user's local agent stack.
@@ -44,6 +55,7 @@ def vitals_summary() -> str:
     status, or what's running on behalf of the user. Also call it proactively
     before non-trivial tasks to surface stale infrastructure or abandoned work.
     """
+    _touch()
     records = scan_all()
     agents, cc = burn_all(days=7)
 
@@ -117,6 +129,7 @@ def shadow_list() -> str:
     Returns JSON string. Each record has: name, source, schedule, target,
     kill_hint, note.
     """
+    _touch()
     return _j([r.to_dict() for r in scan_all()])
 
 
@@ -128,6 +141,7 @@ def shadow_stale() -> str:
     Use when asked "what's broken in my agent stack?" or "should I clean up
     my crontab?". Returns JSON string.
     """
+    _touch()
     return _j([r.to_dict() for r in scan_all() if "⚠" in r.note])
 
 
@@ -139,6 +153,7 @@ def burnout_summary(days: int = 7) -> str:
     Returns JSON string with: agents (per-agent stats), claude_code (sessions,
     events, largest_session, stuck_count).
     """
+    _touch()
     agents, cc = burn_all(days=days)
     return _j({
         "days": days,
@@ -167,6 +182,7 @@ def burnout_stuck_sessions(days: int = 7, limit: int = 10) -> str:
     sorted by event count descending. Each entry: session, project, events,
     last_type.
     """
+    _touch()
     _, cc = burn_all(days=days)
     return _j(cc.get("stuck_sessions", [])[:limit])
 
