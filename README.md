@@ -5,11 +5,11 @@
 ### <span style="color:#f2f2f2">Give your AI agent a memory of its own infrastructure.</span>
 
 <p>
-<a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-#00d992?style=flat-square" alt="License"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.2.1-#3d3a39?style=flat-square" alt="Version"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/python-3.11+-#2fd6a1?style=flat-square" alt="Python"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-~900-#8b949e?style=flat-square" alt="LOC"></a>
-&nbsp;<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-stdio-#00d992?style=flat-square" alt="MCP"></a>
+<a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-00d992?style=flat-square" alt="License"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.2.1-3d3a39?style=flat-square" alt="Version"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/python-3.11%2B-2fd6a1?style=flat-square" alt="Python"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E900-8b949e?style=flat-square" alt="LOC"></a>
+&nbsp;<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-stdio-00d992?style=flat-square" alt="MCP"></a>
 </p>
 
 <p>
