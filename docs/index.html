@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>agent-vitals — Give your AI agent a memory of its own infrastructure</title>
+  <meta name="description" content="Local-first observability for AI agent stacks. 5 MCP tools your agent calls proactively. Wires pi, Claude Code, Cursor, OpenCode, Codex CLI in 30 seconds." />
+  <meta property="og:title" content="agent-vitals — Make your agent less stupid" />
+  <meta property="og:description" content="5 MCP tools your agent calls proactively. Wired into pi, Claude Code, Cursor, OpenCode, Codex CLI." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://github.com/anirudhprashant/agent-vitals" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ─── VoltAgent-inspired design system ─── */
+    :root {
+      /* Surface */
+      --abyss: #050507;
+      --carbon: #101010;
+      --carbon-2: #161618;
+      --border: #3d3a39;
+      --border-soft: #2a2826;
+
+      /* Accent */
+      --signal: #00d992;
+      --mint: #2fd6a1;
+      --mint-soft: rgba(0, 217, 146, 0.12);
+
+      /* Text */
+      --snow: #f2f2f2;
+      --white: #ffffff;
+      --parchment: #b8b3b0;
+      --steel: #8b949e;
+      --mist: #dcdcdc;
+
+      /* Semantic */
+      --danger: #fb565b;
+      --warning: #ffba00;
+
+      /* Shadows */
+      --haze: 0 0 15px rgba(92, 88, 85, 0.2);
+      --dramatic: 0 20px 60px rgba(0, 0, 0, 0.7);
+
+      /* Type */
+      --font-display: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--abyss);
+      color: var(--snow);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      font-feature-settings: "calt", "rlig";
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--mint);
+      text-decoration: none;
+      transition: color 160ms ease;
+    }
+    a:hover {
+      color: var(--signal);
+    }
+
+    /* ─── Layout ─── */
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ─── Top nav ─── */
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(5, 5, 7, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    nav.top .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 17px;
+      letter-spacing: -0.01em;
+      color: var(--snow);
+    }
+    .bolt {
+      width: 22px;
+      height: 22px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--signal);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 2px var(--signal));
+      }
+      50% {
+        filter: drop-shadow(0 0 8px var(--signal));
+      }
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 14.45px;
+      font-weight: 500;
+    }
+    .nav-links a {
+      color: var(--snow);
+    }
+    .nav-links a:hover {
+      color: var(--signal);
+    }
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--snow);
+      background: transparent;
+      transition: all 160ms ease;
+    }
+    .nav-cta:hover {
+      border-color: var(--signal);
+      color: var(--signal);
+      background: var(--mint-soft);
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 120px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1200px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(0, 217, 146, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero > .wrap {
+      position: relative;
+      z-index: 1;
+    }
+    .overline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2.52px;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin-bottom: 32px;
+    }
+    .overline::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--signal);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--signal);
+    }
+    h1.display {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 400;
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+      color: var(--white);
+      max-width: 900px;
+      margin-bottom: 28px;
+    }
+    h1.display em {
+      font-style: normal;
+      color: var(--signal);
+    }
+    .hero p.lede {
+      font-size: 20px;
+      line-height: 1.5;
+      color: var(--parchment);
+      max-width: 720px;
+      margin-bottom: 48px;
+    }
+    .install {
+      background: var(--carbon);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      max-width: 720px;
+      box-shadow: var(--dramatic);
+    }
+    .install code {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--snow);
+      flex: 1;
+      line-height: 1.5;
+    }
+    .install code .cmd {
+      color: var(--mint);
+      font-weight: 700;
+    }
+    .install code .comment {
+      color: var(--steel);
+    }
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--snow);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 160ms ease;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover {
+      border-color: var(--signal);
+      color: var(--signal);
+    }
+    .copy-btn.copied {
+      border-color: var(--signal);
+      color: var(--signal);
+      background: var(--mint-soft);
+    }
+    .meta-row {
+      display: flex;
+      gap: 32px;
+      margin-top: 32px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--steel);
+      flex-wrap: wrap;
+    }
+    .meta-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .meta-row .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--signal);
+      border-radius: 50%;
+    }
+
+    /* ─── Section primitives ─── */
+    section {
+      padding: 96px 0;
+      border-top: 1px solid var(--border-soft);
+    }
+    .section-head {
+      max-width: 720px;
+      margin-bottom: 56px;
+    }
+    .section-head .label {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2.52px;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin-bottom: 16px;
+      display: block;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 400;
+      line-height: 1.11;
+      letter-spacing: -0.025em;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+    .section-head p {
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--parchment);
+    }
+
+    /* ─── Before/After ─── */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 760px) {
+      .compare {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: var(--carbon);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      position: relative;
+      transition: border-color 200ms ease;
+    }
+    .panel.bad:hover {
+      border-color: rgba(251, 86, 91, 0.4);
+    }
+    .panel.good {
+      border-color: rgba(0, 217, 146, 0.3);
+    }
+    .panel.good:hover {
+      border-color: var(--signal);
+    }
+    .panel-label {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2.52px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-label.bad {
+      color: var(--danger);
+    }
+    .panel-label.good {
+      color: var(--signal);
+    }
+    .panel pre {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--parchment);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .panel pre .user {
+      color: var(--steel);
+    }
+    .panel pre .agent {
+      color: var(--snow);
+    }
+    .panel pre .call {
+      color: var(--signal);
+    }
+    .panel pre .ok {
+      color: var(--mint);
+    }
+
+    /* ─── Tools grid ─── */
+    .tools {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .tool {
+      background: var(--carbon);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      transition: all 200ms ease;
+    }
+    .tool:hover {
+      border-color: var(--signal);
+      box-shadow: var(--haze);
+      transform: translateY(-2px);
+    }
+    .tool h3 {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--signal);
+      margin-bottom: 4px;
+    }
+    .tool .ret {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--steel);
+      margin-bottom: 18px;
+    }
+    .tool p {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--parchment);
+      margin-bottom: 14px;
+    }
+    .tool .when {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--mist);
+      padding-top: 14px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .tool .when strong {
+      color: var(--snow);
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ─── Flow diagram ─── */
+    .flow {
+      background: var(--carbon);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .node {
+      flex: 1;
+      min-width: 140px;
+      background: var(--carbon-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 18px 14px;
+      text-align: center;
+    }
+    .node h4 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--signal);
+      margin-bottom: 6px;
+    }
+    .node p {
+      font-size: 12px;
+      color: var(--steel);
+    }
+    .arrow {
+      flex: 0;
+      color: var(--signal);
+      font-family: var(--font-mono);
+      font-size: 20px;
+      padding: 0 4px;
+    }
+
+    /* ─── Anti-patterns ─── */
+    .anti {
+      background: rgba(251, 86, 91, 0.04);
+      border: 1px solid rgba(251, 86, 91, 0.3);
+      border-radius: 8px;
+      padding: 36px;
+    }
+    .anti .label {
+      color: var(--danger);
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2.52px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .anti ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 16px;
+    }
+    .anti li {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--parchment);
+      padding-left: 28px;
+      position: relative;
+    }
+    .anti li::before {
+      content: "✗";
+      color: var(--danger);
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    /* ─── CTA strip ─── */
+    .cta-strip {
+      background: var(--carbon);
+      border: 1px solid var(--signal);
+      border-radius: 8px;
+      padding: 48px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+      box-shadow: 0 0 30px rgba(0, 217, 146, 0.1);
+    }
+    .cta-strip h3 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .cta-strip p {
+      font-size: 15px;
+      color: var(--parchment);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 200ms ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: var(--carbon);
+      color: var(--mint);
+      border-color: var(--mint);
+    }
+    .btn-primary:hover {
+      background: var(--mint-soft);
+      box-shadow: 0 0 24px rgba(0, 217, 146, 0.3);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--snow);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover {
+      border-color: var(--signal);
+      color: var(--signal);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      border-top: 1px solid var(--border-soft);
+      padding: 48px 0 64px;
+      color: var(--steel);
+      font-size: 14px;
+    }
+    footer .wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    footer .links {
+      display: flex;
+      gap: 24px;
+    }
+    footer .links a {
+      color: var(--steel);
+    }
+    footer .links a:hover {
+      color: var(--signal);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 720px) {
+      .hero {
+        padding: 80px 0 56px;
+      }
+      section {
+        padding: 64px 0;
+      }
+      .flow {
+        padding: 24px;
+      }
+      .node {
+        min-width: 100%;
+      }
+      .arrow {
+        display: none;
+      }
+      .nav-links {
+        display: none;
+      }
+      .install {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    /* (scroll-reveal animations intentionally removed — keep page fully
+       visible for static viewers, screenshot tools, and prefers-reduced-motion
+       users by default) */
+  </style>
+</head>
+<body>
+
+<!-- ─── Top nav ─── -->
+<nav class="top">
+  <div class="wrap">
+    <a href="#" class="brand">
+      <span class="bolt">⚡</span>
+      agent-vitals
+    </a>
+    <div class="nav-links">
+      <a href="#tools">Tools</a>
+      <a href="#flow">How it works</a>
+      <a href="#anti">Anti-patterns</a>
+      <a href="https://github.com/anirudhprashant/agent-vitals">GitHub →</a>
+    </div>
+    <a href="https://github.com/anirudhprashant/agent-vitals" class="nav-cta">
+      <span>★ Star</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<section class="hero">
+  <div class="wrap">
+    <span class="overline">v0.2.1 · MIT · MCP server</span>
+    <h1 class="display">Give your AI agent <em>a memory</em> of its own infrastructure.</h1>
+    <p class="lede">
+      5 MCP tools your agent calls <em>proactively</em> — before tasks, before scheduling
+      infra, when stuck, after long runs. Wires into pi, Claude Code, Cursor, OpenCode,
+      Codex CLI in 30 seconds. No daemon. No cloud.
+    </p>
+    <div class="install">
+      <code><span class="cmd">$</span> uv tool install git+https://github.com/anirudhprashant/agent-vitals && av init <span class="comment"># that's it</span></code>
+      <button class="copy-btn" onclick="copyInstall(this)">copy</button>
+    </div>
+    <div class="meta-row">
+      <span><span class="dot"></span> ~900 LOC Python</span>
+      <span><span class="dot"></span> 3 runtime deps</span>
+      <span><span class="dot"></span> read-only tools</span>
+      <span><span class="dot"></span> local-first</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Before / after ─── -->
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="label">The diff</span>
+      <h2>Vibes vs. data.</h2>
+      <p>The same user prompt, two different agent behaviors. One agent operates on intuition; the other operates on what the box is actually doing.</p>
+    </div>
+
+    <div class="compare">
+      <div class="panel bad">
+        <div class="panel-label bad"><span>●</span> Without agent-vitals</div>
+<pre><span class="user">$ </span><span class="user">schedule a daily backup at 2am</span>
+
+<span class="agent">Agent: yep, done.</span>
+
+  0 2 * * * /home/me/backup.sh
+        >> /tmp/backup.log 2>&1
+
+<span class="agent"># …and /home/me/backup.sh doesn't exist.</span>
+<span class="agent"># crontab fails silently forever.</span></pre>
+      </div>
+
+      <div class="panel good">
+        <div class="panel-label good"><span>●</span> With agent-vitals</div>
+<pre><span class="user">$ </span><span class="user">schedule a daily backup at 2am</span>
+
+<span class="agent">Agent: one moment — verifying first.</span>
+
+  <span class="call">→ shadow_stale</span>        <span class="agent">(no other cron broken)</span>
+  <span class="call">→ check backup.sh</span>     <span class="agent">(exists? writable?)</span>
+  <span class="call">→ write crontab entry</span>
+  <span class="call">→ shadow_stale</span>        <span class="agent">(confirm no breakage)</span>
+
+<span class="ok">✓ crontab updated.</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Tools ─── -->
+<section id="tools">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="label">The primitives</span>
+      <h2>5 tools. ~900 lines of Python.</h2>
+      <p>Each tool is local-only, read-only, and safe to call repeatedly. None of them modify state.</p>
+    </div>
+
+    <div class="tools">
+
+      <div class="tool">
+        <h3>vitals_summary()</h3>
+        <div class="ret">→ str · plain English</div>
+        <p>One-shot health check. <strong style="color:var(--snow)">Always call this first.</strong> Surfaces stale infra, stuck sessions, duplicate registrations, and recent completion rates in plain English the agent can act on.</p>
+        <div class="when"><strong>When</strong>Before non-trivial tasks. After long runs. When stuck. When the user asks "is X working?"</div>
+      </div>
+
+      <div class="tool">
+        <h3>shadow_list()</h3>
+        <div class="ret">→ str · JSON array</div>
+        <p>Every cron job, systemd timer, MCP server, and scheduled skill currently configured on the user's machine. Each entry carries a <code style="color:var(--signal)">from &lt;path&gt;</code> note so the agent knows exactly where to look.</p>
+        <div class="when"><strong>When</strong>Before infra changes. When recommending MCP installs (check duplicates first).</div>
+      </div>
+
+      <div class="tool">
+        <h3>shadow_stale()</h3>
+        <div class="ret">→ str · JSON array</div>
+        <p>Filtered view of <code style="color:var(--signal)">shadow_list</code> — only the broken references. Cron entries pointing at deleted binaries. MCP servers that fail to register. The shadow's dark side.</p>
+        <div class="when"><strong>When</strong>Before claiming "your crontab is fine". Before scheduling new cron / timer / systemd work.</div>
+      </div>
+
+      <div class="tool">
+        <h3>burnout_summary(days=7)</h3>
+        <div class="ret">→ str · JSON object</div>
+        <p>Per-agent completion rates from <code style="color:var(--signal)">~/.pi/agent/run-history.jsonl</code> plus Claude Code session counts. Trend column tells the agent if completion is improving or degrading over time.</p>
+        <div class="when"><strong>When</strong>After a long task completes. To compare your run against your baseline.</div>
+      </div>
+
+      <div class="tool">
+        <h3>burnout_stuck_sessions(days=7, limit=10)</h3>
+        <div class="ret">→ str · JSON array</div>
+        <p>Claude Code sessions with 200+ events. Heuristic only, but catches the obvious runaway loops. Each entry has a session UUID so the agent can drill in.</p>
+        <div class="when"><strong>When</strong>Suspecting a loop. To see if other sessions are stuck too.</div>
+      </div>
+
+      <div class="tool">
+        <h3 style="color:var(--steel)">// v0.3.0 — coming</h3>
+        <div class="ret">→ hooks · pre-action gates</div>
+        <p>Priming tells the agent to call vitals. <strong style="color:var(--snow)">Hooks enforce it.</strong> v0.3.0 will refuse to mutate <code style="color:var(--signal)">crontab</code>, <code style="color:var(--signal)">systemd</code>, or MCP configs until <code style="color:var(--signal)">shadow_stale</code> has been called in the last 60 seconds. Priming gets you ~30% of the way. Hooks get you the rest.</p>
+        <div class="when"><strong>When</strong>When you stop trusting priming and start trusting the kernel.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── Flow ─── -->
+<section id="flow">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="label">The wiring</span>
+      <h2>How it lands in 30 seconds.</h2>
+      <p><code style="color:var(--signal)">av init</code> detects every agent host on your box and does four things per host: registers the MCP server, installs a priming skill, marks the MCP entry, and verifies the install. Idempotent — re-run any time.</p>
+    </div>
+
+    <div class="flow">
+      <div class="node">
+        <h4>1 · detect</h4>
+        <p>scan pi / Claude Code / OpenCode / Cursor / Codex config dirs</p>
+      </div>
+      <span class="arrow">→</span>
+      <div class="node">
+        <h4>2 · mcp.json</h4>
+        <p>merge <code>{command: av, args: [mcp]}</code> into detected host</p>
+      </div>
+      <span class="arrow">→</span>
+      <div class="node">
+        <h4>3 · skill.md</h4>
+        <p>install trigger table the agent reads as a system hint</p>
+      </div>
+      <span class="arrow">→</span>
+      <div class="node">
+        <h4>4 · restart</h4>
+        <p>host picks up new MCP server + priming on next launch</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Anti-patterns ─── -->
+<section id="anti">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="label">Why this exists</span>
+      <h2>Anti-patterns it prevents.</h2>
+      <p>These are the failure modes that made us build it. If you see an agent doing any of these, the priming didn't reach them — or they need v0.3.0 hooks.</p>
+    </div>
+
+    <div class="anti">
+      <div class="label">● Don't do these</div>
+      <ul>
+        <li><strong style="color:var(--snow)">"Your crontab is fine"</strong> — without calling <code style="color:var(--signal)">shadow_stale</code> first</li>
+        <li><strong style="color:var(--snow)">Scheduling cron / systemd work</strong> — without verifying the target binary exists</li>
+        <li><strong style="color:var(--snow)">Starting a 4-hour task</strong> — while 6 other sessions are stuck on the same box</li>
+        <li><strong style="color:var(--snow)">Pretending a task completed</strong> — without checking <code style="color:var(--signal)">burnout_summary</code></li>
+        <li><strong style="color:var(--snow)">Recommending an MCP install</strong> — without <code style="color:var(--signal)">shadow_list</code> to check duplicates</li>
+        <li><strong style="color:var(--snow)">Debugging slowness</strong> — without first checking <code style="color:var(--signal)">vitals_summary</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section>
+  <div class="wrap">
+    <div class="cta-strip">
+      <div>
+        <h3>30 seconds to a less-stupid agent.</h3>
+        <p>MIT. ~900 LOC. No daemon, no cloud, no accounts.</p>
+      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <a href="https://github.com/anirudhprashant/agent-vitals" class="btn btn-primary">★ Star on GitHub</a>
+        <a href="https://github.com/anirudhprashant/agent-vitals#install" class="btn btn-ghost">Install →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="wrap">
+    <div>agent-vitals · v0.2.1 · MIT · 2026</div>
+    <div class="links">
+      <a href="https://github.com/anirudhprashant/agent-vitals">GitHub</a>
+      <a href="https://github.com/anirudhprashant/agent-vitals/releases">Releases</a>
+      <a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE">License</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function copyInstall(btn) {
+    const text = 'uv tool install git+https://github.com/anirudhprashant/agent-vitals && av init';
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  }
+
+  // Reveal animations intentionally removed — they break static viewers,
+  // screenshot tools, and prefers-reduced-motion users. Page is fully
+  // visible by default; only the bolt-icon pulse and copy-button feedback
+  // animate.
+</script>
+
+</body>
+</html>

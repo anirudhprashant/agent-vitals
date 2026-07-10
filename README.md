@@ -1,28 +1,35 @@
-# agent-vitals
+<div align="center">
 
-> **Give your AI agent a memory of its own infrastructure.**
+# <span style="color:#00d992">⚡ agent-vitals</span>
 
-```text
-  ┌───────────────────────────────────────────────────────────────┐
-  │                                                               │
-  │   ▄▀ agent-vitals                                            │
-  │                                                               │
-  │   ⚡ 5 MCP tools an agent calls proactively                   │
-  │   🔌 wires pi · Claude Code · Cursor · OpenCode · Codex CLI   │
-  │   📜 installs a SKILL.md that primes the agent to use them    │
-  │   🪶 ~900 LOC Python · MIT · no daemon · no cloud             │
-  │                                                               │
-  └───────────────────────────────────────────────────────────────┘
-```
+### <span style="color:#f2f2f2">Give your AI agent a memory of its own infrastructure.</span>
+
+<p>
+<a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-#00d992?style=flat-square" alt="License"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.2.1-#3d3a39?style=flat-square" alt="Version"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/python-3.11+-#2fd6a1?style=flat-square" alt="Python"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-~900-#8b949e?style=flat-square" alt="LOC"></a>
+&nbsp;<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-stdio-#00d992?style=flat-square" alt="MCP"></a>
+</p>
+
+<p>
+  <code style="color:#00d992">5 MCP tools an agent calls proactively</code>
+  &nbsp;·&nbsp;
+  <code style="color:#b8b3b0">wires pi · Claude Code · Cursor · OpenCode · Codex CLI</code>
+  &nbsp;·&nbsp;
+  <code style="color:#b8b3b0">~900 LOC · MIT · no daemon · no cloud</code>
+</p>
+
+</div>
 
 ---
 
-## What your agent sees
+## <span style="color:#00d992">▍</span> What your agent sees
+
+When your agent (pi, Claude Code, OpenCode, Cursor, Codex) calls `vitals_summary`, it gets:
 
 ```text
-  $ vitals_summary
-
-  agent-vitals — local agent stack health
+  ▄▀ agent-vitals — local agent stack health
 
   shadow: 13 autonomous thing(s) configured (mcp: 8, systemd: 5)
   subagent burnout (7d): 5 runs, 100% completion ✓
@@ -30,49 +37,51 @@
     - biggest stuck-looking session: 7,118 events
 ```
 
-That's not a CLI you read. That's a tool your agent calls — from inside its own loop — before it does anything risky.
+That's not a CLI you read. That's a tool your agent calls from inside its own loop — before it does anything risky.
 
 ---
 
-## Before / after
+## <span style="color:#00d992">▍</span> Before / after
 
 <table>
-<tr><th>Without agent-vitals</th><th>With agent-vitals</th></tr>
 <tr>
-<td>
+<th width="50%" align="left"><span style="color:#fb565b">▍ Without agent-vitals</span></th>
+<th width="50%" align="left"><span style="color:#00d992">▍ With agent-vitals</span></th>
+</tr>
+<tr>
+<td valign="top">
 
 ```text
 User: schedule a daily backup at 2am
 
 Agent: yep, done.
 
-  0 2 * * * /home/me/backup.sh >> /tmp/backup.log 2>&1
+  0 2 * * * /home/me/backup.sh
+        >> /tmp/backup.log 2>&1
 ```
 
-…and `/home/me/backup.sh` doesn't exist.
-Crontab fails silently forever.
+… and `/home/me/backup.sh` doesn't exist. Crontab fails silently forever.
 
 </td>
-<td>
+<td valign="top">
 
 ```text
 User: schedule a daily backup at 2am
 
-Agent: one moment — let me verify first.
+Agent: one moment — verifying first.
 
-  → shadow_stale   (no other cron jobs already broken)
-  → checks /home/me/backup.sh   (exists? writable?)
-  → writes crontab entry
-  → shadow_stale   (confirm new entry didn't break anything)
-  → reports back
+  → shadow_stale       (no other cron broken)
+  → check backup.sh    (exists? writable?)
+  → write crontab entry
+  → shadow_stale       (confirm no breakage)
 
-  ✓ crontab updated. ran shadow_stale before and after.
+  ✓ crontab updated.
 ```
 
 </td>
 </tr>
 <tr>
-<td>
+<td valign="top">
 
 ```text
 User: is my agent setup healthy?
@@ -83,7 +92,7 @@ Agent: looks fine to me!
 (blind vibes)
 
 </td>
-<td>
+<td valign="top">
 
 ```text
 User: is my agent setup healthy?
@@ -91,22 +100,21 @@ User: is my agent setup healthy?
 Agent: → vitals_summary
 
   shadow: 13 autonomous thing(s) configured
-  subagent burnout (7d): 100% completion ✓
-  claude code (7d): 170 sessions, ⚠ 36 stuck
-    - biggest stuck-looking session: 7,118 events
+  claude code (7d): ⚠ 36 stuck sessions
+    - biggest: 7,118 events
 
-  ⚠ 36 sessions look stuck. want me to triage them?
+  ⚠ 36 sessions look stuck. want me to triage?
 ```
 
 </td>
 </tr>
 </table>
 
-The diff is "vibes vs. data."
+The diff is **vibes vs. data**.
 
 ---
 
-## Install
+## <span style="color:#00d992">▍</span> Install
 
 ```bash
 uv tool install git+https://github.com/anirudhprashant/agent-vitals
@@ -114,11 +122,11 @@ av init     # detects every agent host on your box and wires them up
             # restart your agent host so it picks up the new MCP server
 ```
 
-That's the whole setup. 30 seconds.
+That's the whole setup. <span style="color:#00d992">30 seconds.</span>
 
 ---
 
-## What `av init` does
+## <span style="color:#00d992">▍</span> What `av init` does
 
 ```text
   $ av init
@@ -129,7 +137,7 @@ That's the whole setup. 30 seconds.
   │ pi          │ /home/anirudh/.pi/agent/mcp.json │ detected │
   │ Claude Code │ /home/anirudh/.claude/.mcp.json  │ detected │
   │ Codex CLI   │ /home/anirudh/.codex/config.toml │ detected │
-  └─────────────┴──────────────────────────────────┴──────────┘
+  └─────────────┴──────────────────────────────────┴────────━━┘
 
   installing:
 
@@ -146,20 +154,20 @@ That's the whole setup. 30 seconds.
 
 | Host | MCP config | Priming |
 |---|---|---|
-| **pi** | `~/.pi/agent/mcp.json` | `~/.claude/skills/agent-vitals/SKILL.md` |
-| **Claude Code** | `~/.claude/.mcp.json` | `~/.claude/skills/agent-vitals/SKILL.md` |
-| **Cursor** | `~/.cursor/mcp.json` | `~/.cursor/rules/agent-vitals.md` |
-| **OpenCode** | `~/.config/opencode/mcp.json` | `~/.config/opencode/AGENTS.md` |
-| **Codex CLI** | `~/.codex/config.toml` | `~/.codex/AGENTS.md` |
+| <span style="color:#00d992">**pi**</span> | `~/.pi/agent/mcp.json` | `~/.claude/skills/agent-vitals/SKILL.md` |
+| <span style="color:#00d992">**Claude Code**</span> | `~/.claude/.mcp.json` | `~/.claude/skills/agent-vitals/SKILL.md` |
+| <span style="color:#00d992">**Cursor**</span> | `~/.cursor/mcp.json` | `~/.cursor/rules/agent-vitals.md` |
+| <span style="color:#00d992">**OpenCode**</span> | `~/.config/opencode/mcp.json` | `~/.config/opencode/AGENTS.md` |
+| <span style="color:#00d992">**Codex CLI**</span> | `~/.codex/config.toml` | `~/.codex/AGENTS.md` |
 
 > [!NOTE]
 > Idempotent. Re-run `av init` any time — existing entries are skipped, never duplicated. TOML configs (Codex CLI) get TOML sections; JSON configs get JSON entries.
 
 ---
 
-## The five tools
+## <span style="color:#00d992">▍</span> The five tools
 
-| Tool | Returns | When agent should reach for it |
+| Tool | Returns | When the agent should reach for it |
 |---|---|---|
 | `vitals_summary()` | plain English | **always first** — health check, before tasks, when stuck |
 | `shadow_list()` | JSON array | before infra changes — see everything running on the user's behalf |
@@ -171,9 +179,9 @@ All tools are **local-only, read-only, safe to call repeatedly**. None of them m
 
 ---
 
-## The trigger table
+## <span style="color:#00d992">▍</span> The trigger table
 
-This is the table `av init` installs into your priming skill — so the agent knows when to reach for each tool **without you asking**:
+The table `av init` installs into your priming skill — so the agent knows when to reach for each tool **without you asking**:
 
 | Trigger | Tool |
 |---|---|
@@ -187,14 +195,14 @@ This is the table `av init` installs into your priming skill — so the agent kn
 | User asks "what's broken?" | `vitals_summary` → `shadow_stale` + `burnout_stuck_sessions` |
 
 > [!WARNING]
-> **Honesty note.** Priming isn't enforcement. The SKILL.md puts these triggers in front of the agent's face, but the agent still has to *remember* to follow them. In practice this catches ~30–40% of cases — better than nothing, not a magic bullet. Real enforcement comes in v0.3 via pre-action hooks (e.g. block any cron modification until `shadow_stale` has been called in the last 60 seconds).
+> **Honesty note.** Priming isn't enforcement. The SKILL.md puts these triggers in front of the agent's face, but the agent still has to *remember* to follow them. In practice this catches ~30–40% of cases — better than nothing, not a magic bullet. Real enforcement comes in **v0.3.0** via pre-action hooks (e.g. block any cron modification until `shadow_stale` has been called in the last 60 seconds).
 
 ---
 
-## Anti-patterns this exists to prevent
+## <span style="color:#fb565b">▍</span> Anti-patterns this exists to prevent
 
 > [!IMPORTANT]
-> These are the failure modes that made us build agent-vitals. If you see an agent doing any of these, it's a sign the priming didn't reach them — or they need v0.3 hooks.
+> These are the failure modes that made us build agent-vitals. If you see an agent doing any of these, it's a sign the priming didn't reach them — or they need **v0.3.0 hooks**.
 
 - ❌ **"Your crontab is fine"** — without calling `shadow_stale` first
 - ❌ **Scheduling cron / systemd work** — without verifying the target binary exists
@@ -205,9 +213,9 @@ This is the table `av init` installs into your priming skill — so the agent kn
 
 ---
 
-## What it scans
+## <span style="color:#00d992">▍</span> What it scans
 
-| Source | Path | Notes |
+| Source | Path | What it finds |
 |---|---|---|
 | Crontab | `crontab -l` | flags targets that no longer exist |
 | systemd user timers | `systemctl --user list-timers` | systemd-v255 quirk-resistant (computes `next - now` itself) |
@@ -219,7 +227,7 @@ This is the table `av init` installs into your priming skill — so the agent kn
 
 ---
 
-## CLI (humans only — for verification)
+## <span style="color:#00d992">▍</span> CLI (humans only — for verification)
 
 ```bash
 av                # one-shot health summary
@@ -236,34 +244,34 @@ av --help
 
 ---
 
-## Stack
+## <span style="color:#00d992">▍</span> Stack
 
 ```
-Python 3.11+   ──  type hints, tomllib, asyncio
-uv             ──  one-tool install / build / publish
-typer          ──  CLI
-rich           ──  terminal rendering
-pyyaml         ──  SKILL.md frontmatter parsing
-mcp            ──  MCP server (FastMCP, stdio transport)
+Python 3.11+    ──  type hints, tomllib, asyncio
+uv              ──  one-tool install / build / publish
+typer           ──  CLI
+rich            ──  terminal rendering
+pyyaml          ──  SKILL.md frontmatter parsing
+mcp (FastMCP)   ──  MCP server, stdio transport
 ```
 
 ~900 LOC of Python + the priming `SKILL.md`. MIT licensed.
 
 ---
 
-## Roadmap
+## <span style="color:#00d992">▍</span> Roadmap
 
 - [x] **v0.1.0** — `shadow` + `burnout` CLI commands
 - [x] **v0.2.0** — MCP server + `av init` for 5 host types
 - [x] **v0.2.1** — fix false-positive duplicate detection across hosts
-- [ ] **v0.3.0** — **pre-action hooks** that *enforce* vitals calls before infra mutations (not just priming)
+- [ ] **v0.3.0** — <span style="color:#00d992">**pre-action hooks**</span> that *enforce* vitals calls before infra mutations (not just priming)
 - [ ] **v0.4.0** — `shadow live` (running agent processes, ps-tree view)
 - [ ] **v0.5.0** — cross-session "agent déjà vu" detector (you researched this codebase 3 weeks ago)
 - [ ] later — burnout trend over time (sparklines per agent)
 
 ---
 
-## Contributing
+## <span style="color:#00d992">▍</span> Contributing
 
 Issues and PRs welcome. Two things to know:
 
@@ -274,10 +282,14 @@ When you open a PR, paste the output of `av shadow` on your box so we can see wh
 
 ---
 
-## License
+## <span style="color:#00d992">▍</span> License
 
 MIT. See [`LICENSE`](LICENSE).
 
 <br/>
 
-<sub>built by [anirudh prashant](https://github.com/anirudhprashant) · agent-vitals v0.2.1 · 2026</sub>
+<sub>
+<span style="color:#3d3a39">─────────────────────────────────────────────</span>
+<br/>
+<span style="color:#8b949e">built by</span> <span style="color:#f2f2f2">anirudh prashant</span> <span style="color:#8b949e">·</span> <span style="color:#00d992">agent-vitals v0.2.1</span> <span style="color:#8b949e">·</span> <span style="color:#b8b3b0">2026</span>
+</sub>
