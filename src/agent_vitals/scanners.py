@@ -187,8 +187,10 @@ def _read_mcp_json(path: Path) -> list[ShadowRecord]:
 def scan_mcp_servers() -> list[ShadowRecord]:
     """Scan known MCP server config locations.
 
-    If the same server name appears in multiple configs, we keep the first
-    occurrence and tag the rest as duplicates — a useful shadow finding.
+    No dedupe across hosts — each agent host (pi / Claude Code / Cursor /
+    OpenCode) needs its own registration of every MCP server, so the same
+    name appearing in two configs is normal, not a duplicate. The `from <path>`
+    note in each record tells the user where the registration lives.
     """
     candidates = [
         Path.home() / ".pi/agent/mcp.json",
@@ -199,17 +201,7 @@ def scan_mcp_servers() -> list[ShadowRecord]:
     raw: list[ShadowRecord] = []
     for path in candidates:
         raw.extend(_read_mcp_json(path))
-    # Deduplicate by name; tag duplicates.
-    seen: dict[str, ShadowRecord] = {}
-    for r in raw:
-        if r.name in seen:
-            existing = seen[r.name]
-            dup_note = f"duplicate in {r.note.removeprefix('from ')}"
-            if "duplicate" not in existing.note:
-                existing.note = (existing.note + " | " if existing.note else "") + dup_note
-            continue
-        seen[r.name] = r
-    return list(seen.values())
+    return raw
 
 
 # ---------- agent skills ----------
