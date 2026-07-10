@@ -20,6 +20,10 @@
   <code style="color:#b8b3b0">~900 LOC · MIT · no daemon · no cloud</code>
 </p>
 
+<p>
+  <a href="https://anirudhprashant.github.io/agent-vitals/" style="color:#00d992">→ landing page (anirudhprashant.github.io/agent-vitals)</a>
+</p>
+
 </div>
 
 ---
