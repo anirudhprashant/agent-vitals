@@ -1,6 +1,6 @@
 [project]
 name = "agent-vitals"
-version = "0.1.0"
+version = "0.2.0"
 description = "Solo-dev observability for AI agent stacks: shadow (what's running on your behalf) + burnout (how well it's running)."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -21,6 +21,7 @@ dependencies = [
     "typer>=0.12",
     "rich>=13.7",
     "pyyaml>=6.0",
+    "mcp>=1.0",
 ]
 
 [project.urls]
@@ -37,6 +38,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_vitals"]
+include = ["src/agent_vitals/primer/assets/**/*"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/agent_vitals", "README.md", "LICENSE"]
