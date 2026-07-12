@@ -33,7 +33,7 @@ mcp = FastMCP(
         "Your calls refresh the freshness stamp that powers pre-action hooks; "
         "an agent that never calls vitals triggers refusal of infra mutations."
     ),
-    website_url="https://github.com/example-owner/vitals",
+    website_url="https://github.com/<your-username>/agent-vitals",
 )
 
 
