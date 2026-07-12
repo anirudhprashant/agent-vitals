@@ -121,7 +121,7 @@ The diff is **vibes vs. data**.
 ## <span style="color:#00d992">▍</span> Install
 
 ```bash
-uv tool install git+https://github.com/anirudhprashant/agent-vitals
+uv tool install agent-vitals
 av init     # detects every agent host on your box and wires them up
             # restart your agent host so it picks up the new MCP server
 ```
