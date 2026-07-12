@@ -25,8 +25,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/<your-username>/agent-vitals"
-Issues = "https://github.com/<your-username>/agent-vitals/issues"
+Homepage = "https://github.com/anirudhprashant/agent-vitals"
+Issues = "https://github.com/anirudhprashant/agent-vitals/issues"
 
 [project.scripts]
 agent-vitals = "agent_vitals.cli:app"
