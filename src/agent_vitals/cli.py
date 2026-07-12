@@ -371,7 +371,6 @@ def ssh(
     identifies such patterns and suggests fixes like adding timeouts,
     backoff, or using proper monitoring.
     """
-    from agent_vitals.efficiency import find_loops
     findings = find_loops()
     ssh_findings = [f for f in findings if f.kind == "ssh_poll"]
     if not ssh_findings:
@@ -436,44 +435,11 @@ def coach(
     Fable 5 system prompts. The gap between small and large models is NOT
     reasoning — it is context quality, tool selection, and prompt structure.
     """
-    import json
-    
     if harness:
         # Output complete harness prompt
         prompt = coach_mod.generate_harness_prompt(model_tier=model_tier)
         console.print(prompt)
         return
-    
-    if session_path:
-        sessions = [session_path]
-    else:
-        sessions = discover_sessions()
-    
-    if not sessions:
-        console.print("coach: no sessions found\n")
-        return
-    
-    # Find a session with tool calls
-    target = None
-    for s in sessions:
-        calls = coach_mod._extract_tool_calls_from_session(s.path)
-        if calls:
-            target = s.path
-            break
-    
-    if target is None:
-        console.print("coach: no sessions with tool calls found\n")
-        return
-    
-    report = coach_mod.analyze_session(target, model_tier=model_tier)
-    
-    if format == "json":
-        output = coach_mod.render_coaching_report(report, format="json")
-        console.print_json(output)
-    else:
-        output = coach_mod.render_coaching_report(report, format="text")
-        console.print(output)
-    import json
     
     if session_path:
         sessions = [session_path]
@@ -547,10 +513,8 @@ def compact(
     events up to --keep-last. This reduces context bloat and speeds up
     future scans.
     """
-    import gzip
     import json
     import shutil
-    from datetime import datetime
     
     found = discover_sessions()
     if older_than is not None:

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="icon" type="image/svg+xml" href="/agent-vitals/favicon.svg" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0,1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #ffffff;
@@ -23,6 +23,10 @@
       --subtle: #8f8c86;
       --code-bg: #f3f2ef;
       --code-line: #eae8e3;
+      --accent: #00d992;
+      --accent-2: #00b87a;
+      --warn: #fb565b;
+      --surface: rgba(255, 255, 255, 0.72);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -38,10 +42,13 @@
     a { color: var(--muted); text-decoration: none; transition: color 160ms ease; }
     a:hover { color: var(--ink); }
     .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
     nav {
       border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(16px);
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       position: sticky;
       top: 0;
       z-index: 50;
@@ -59,10 +66,15 @@
       font-size: 13.5px;
       color: #fff;
       background: var(--ink);
-      transition: transform 80ms ease, opacity 160ms ease;
+      transition: transform 80ms ease, opacity 160ms ease, box-shadow 200ms ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.08);
     }
-    .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; }
+    .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 6px 18px rgba(20,20,19,0.12); }
+
+    /* Hero */
     .hero { padding: 96px 0 72px; border-bottom: 1px solid var(--line); }
+    .hero-inner { display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items:center; }
+    @media (max-width: 980px) { .hero-inner { grid-template-columns: 1fr; } }
     .overline {
       display: inline-block;
       font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -71,6 +83,10 @@
       text-transform: uppercase;
       color: var(--subtle);
       margin-bottom: 18px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     h1 {
       font-family: "Instrument Serif", Georgia, serif;
@@ -105,6 +121,7 @@
       font-size: 13px;
       color: var(--ink);
       display: inline-block;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
     }
     .copy-btn {
       background: #fff;
@@ -114,12 +131,56 @@
       padding: 8px 12px;
       font-size: 12px;
       cursor: pointer;
-      transition: color 160ms ease, border-color 160ms ease;
+      transition: color 160ms ease, border-color 160ms ease, transform 80ms ease;
     }
-    .copy-btn:hover { color: var(--ink); border-color: var(--ink); }
-    .meta-row { margin-top: 20px; display: flex; gap: 18px; color: var(--subtle); font-size: 13px; }
+    .copy-btn:hover { color: var(--ink); border-color: var(--ink); transform: translateY(-1px); }
+    .meta-row { margin-top: 20px; display: flex; gap: 18px; color: var(--subtle); font-size: 13px; flex-wrap: wrap; }
     .meta-row span { display: inline-flex; align-items: center; gap: 8px; }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); opacity: 0.55; }
+
+    /* Hero visual */
+    .hero-visual { position: relative; }
+    .hero-card {
+      background: linear-gradient(145deg, #f7f7f5, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 18px 45px rgba(20,20,19,0.08), 0 1px 0 rgba(0,0,0,0.04);
+      transform: translateY(0);
+      animation: float 7s ease-in-out infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0px); }
+    }
+    .hero-card pre {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--ink);
+      overflow-x: auto;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,0.03);
+    }
+    .hero-badge {
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,217,146,0.10);
+      color: #086b48;
+      border: 1px solid rgba(0,217,146,0.25);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* Sections */
     section { padding: 72px 0; border-bottom: 1px solid var(--line); }
     section:last-child { border-bottom: none; }
     .section-head { margin-bottom: 28px; }
@@ -146,7 +207,9 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 18px;
+      transition: transform 160ms ease, box-shadow 200ms ease;
     }
+    .example:hover { transform: translateY(-2px); box-shadow: 0 14px 35px rgba(20,20,19,0.07); }
     .example-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
     .example-title { font-family: "Instrument Serif", Georgia, serif; font-size: 16px; font-weight: 400; font-style: italic; color: var(--ink); }
     .example-tag { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; color: var(--subtle); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -160,7 +223,10 @@
       line-height: 1.6;
       color: var(--ink);
       overflow-x: auto;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,0.03);
     }
+
+    /* Tools */
     .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
     @media (max-width: 980px) { .tools { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 640px) { .tools { grid-template-columns: 1fr; } }
@@ -169,7 +235,9 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 18px;
+      transition: transform 160ms ease, box-shadow 200ms ease, border-color 200ms ease;
     }
+    .tool:hover { transform: translateY(-2px); box-shadow: 0 14px 35px rgba(20,20,19,0.07); border-color: #ddd9d3; }
     .tool h3 {
       font-family: "Instrument Serif", Georgia, serif;
       font-size: 16px;
@@ -198,27 +266,19 @@
       color: var(--ink);
     }
     .tool .when { margin-top: 10px; font-size: 12.5px; color: var(--subtle); }
-    .flow { display: flex; align-items: center; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
-    .node {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px 16px;
-      min-width: 150px;
-    }
-    .node h4 { font-family: "Instrument Serif", Georgia, serif; font-size: 14px; font-weight: 400; font-style: italic; color: var(--ink); margin-bottom: 4px; }
-    .node p { font-size: 12px; color: var(--muted); }
-    .arrow { color: var(--subtle); font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
+
+    /* CTA strip */
     .cta-strip {
       margin-top: 22px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      background: var(--bg-2);
+      background: linear-gradient(180deg, #ffffff, #f7f7f5);
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 18px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
     }
     .cta-strip h3 { font-family: "Instrument Serif", Georgia, serif; font-size: 16px; font-weight: 400; font-style: italic; color: var(--ink); }
     .cta-strip p { font-size: 13px; color: var(--muted); margin-top: 4px; }
@@ -232,16 +292,24 @@
       border: 1px solid var(--ink);
       color: #fff;
       background: var(--ink);
-      transition: transform 80ms ease, opacity 160ms ease;
+      transition: transform 80ms ease, opacity 160ms ease, box-shadow 200ms ease;
       text-decoration: none;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.08);
     }
-    .btn:hover { transform: translateY(-1px); opacity: 0.88; }
+    .btn:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 10px 22px rgba(20,20,19,0.14); }
     .btn-ghost { background: transparent; color: var(--ink); }
-    .btn-ghost:hover { background: var(--bg-2); opacity: 1; }
+    .btn-ghost:hover { background: var(--bg-2); opacity: 1; box-shadow: none; }
+
+    /* Footer */
     footer { padding: 32px 0; border-top: 1px solid var(--line); color: var(--subtle); font-size: 12.5px; }
-    .footer-inner { display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+    .footer-inner { display:flex; justify-content:space-between; align-items:center; gap: 12px; flex-wrap: wrap; }
     .footer-inner a { color: var(--muted); }
     .footer-inner a:hover { color: var(--ink); }
+
+    /* Subtle utilities */
+    .muted { color: var(--muted); }
+    .subtle { color: var(--subtle); }
+    .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   </style>
 </head>
 <body>
@@ -259,21 +327,37 @@
 
   <section class="hero">
     <div class="wrap">
-      <span class="overline">v0.6.0 · MIT · small-model performance toolkit</span>
-      <h1>Make small models perform like <em>Opus/Fable</em>.</h1>
-      <p class="lede">
-        vitals reads your actual session data, finds the patterns that make big models effective,
-        and turns them into optimized prompts, playbooks, and checks you can run locally.
-      </p>
-      <div class="install">
-        <code><span class="cmd">$</span> uv tool install agent-vitals && av install <span class="comment"># interactive setup</span></code>
-        <button class="copy-btn" onclick="copyInstall(this)">copy</button>
-      </div>
-      <div class="meta-row">
-        <span><span class="dot"></span> ~4900 LOC · 220 tests</span>
-        <span><span class="dot"></span> 3 runtime deps</span>
-        <span><span class="dot"></span> read-only tools</span>
-        <span><span class="dot"></span> local-first</span>
+      <div class="hero-inner">
+        <div>
+          <span class="overline">v0.6.0 · GPL v3 · small-model performance toolkit</span>
+          <h1>Make small models perform like <em>Opus/Fable</em>.</h1>
+          <p class="lede">
+            vitals reads your actual session data, finds the patterns that make big models effective,
+            and turns them into optimized prompts, playbooks, and checks you can run locally.
+          </p>
+          <div class="install">
+            <code><span class="cmd">$</span> uv tool install agent-vitals && av install <span class="comment"># interactive setup</span></code>
+            <button class="copy-btn" onclick="copyInstall(this)">copy</button>
+          </div>
+          <div class="meta-row">
+            <span><span class="dot"></span> ~4900 LOC · 220 tests</span>
+            <span><span class="dot"></span> 3 runtime deps</span>
+            <span><span class="dot"></span> read-only tools</span>
+            <span><span class="dot"></span> local-first</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-card">
+            <pre>vitals — local agent stack health
+
+shadow: 13 autonomous thing(s) configured
+  mcp: 8, systemd: 5
+claude code (7d): 170 sessions, 45,626 events
+  ⚠ 36 stuck
+    - biggest stuck-looking session: 7,118 events</pre>
+            <div class="hero-badge">✓ no daemon · no cloud · no accounts</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -544,7 +628,7 @@ av coach --harness</pre>
 
   <footer>
     <div class="wrap footer-inner">
-      <span>MIT. ~4900 LOC · 220 tests. No daemon, no cloud, no accounts.</span>
+      <span>GPL v3. ~4900 LOC · 220 tests. No daemon, no cloud, no accounts.</span>
       <span>
         <a href="https://github.com/anirudhprashant/agent-vitals">GitHub</a> ·
         <a href="https://github.com/anirudhprashant/agent-vitals/releases">Releases</a> ·

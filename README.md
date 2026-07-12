@@ -122,7 +122,7 @@ The diff is **vibes vs. data**.
 
 ```bash
 uv tool install agent-vitals
-av init     # detects every agent host on your box and wires them up
+av install  # detects every agent host on your box and wires them up
             # restart your agent host so it picks up the new MCP server
 ```
 
@@ -159,10 +159,10 @@ After `av hooks install`, the one-liner above is appended to your `~/.bashrc` / 
 
 **Bypass for emergencies:** `VITALS_BYPASS=1 crontab -e` skips the check.
 
-## <span style="color:#00d992">▍</span> What `av init` does
+## <span style="color:#00d992">▍</span> What `av install` does
 
 ```text
-  $ av init
+  $ av install
                     detected 3 agent host(s)
   ┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┓
   ┃ host        ┃ config                           ┃ status   ┃
@@ -194,7 +194,7 @@ After `av hooks install`, the one-liner above is appended to your `~/.bashrc` / 
 | <span style="color:#00d992">**Codex CLI**</span> | `~/.codex/config.toml` | `~/.codex/AGENTS.md` |
 
 > [!NOTE]
-> Idempotent. Re-run `av init` any time — existing entries are skipped, never duplicated. TOML configs (Codex CLI) get TOML sections; JSON configs get JSON entries.
+> Idempotent. Re-run `av install` any time — existing entries are skipped, never duplicated. TOML configs (Codex CLI) get TOML sections; JSON configs get JSON entries.
 
 ---
 
@@ -224,7 +224,7 @@ All tools are **local-only, read-only, safe to call repeatedly**. None of them m
 
 ## <span style="color:#00d992">▍</span> The trigger table
 
-The table `av init` installs into your priming skill — so the agent knows when to reach for each tool **without you asking**:
+The table `av install` installs into your priming skill — so the agent knows when to reach for each tool **without you asking**:
 
 | Trigger | Tool |
 |---|---|
@@ -282,7 +282,7 @@ av shadow --watch # live refresh every 2s
 av burnout        # completion metrics, last 7 days
 av burnout --days 30
 av detect         # list detected agent hosts
-av init           # wire vitals into every detected host
+av install        # wire vitals into every detected host
 av mcp            # start the MCP server (stdio)
 
 # Efficiency suite (v0.6.0+)
@@ -320,7 +320,7 @@ pytest          ──  220 tests across 5 modules
 ## <span style="color:#00d992">▍</span> Roadmap
 
 - [x] **v0.1.0** — `shadow` + `burnout` CLI commands
-- [x] **v0.2.0** — MCP server + `av init` for 5 host types
+- [x] **v0.2.0** — MCP server + `av install` for 5 host types
 - [x] **v0.2.1** — fix false-positive duplicate detection across hosts
 - [x] **v0.3.0** — <span style="color:#00d992">**pre-action hooks**</span> for crontab + systemctl (priming → enforcement, with bypass)
 - [x] **v0.4.0** — <span style="color:#00d992">**the full suite**</span>: interactive `av install`, `av drift`, `av cost`, `av sessions`, `av snapshot`
