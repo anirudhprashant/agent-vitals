@@ -46,29 +46,34 @@
     /* nav */
     nav {
       border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
       position: sticky;
       top: 0;
       z-index: 50;
     }
     .nav-inner { display:flex; align-items:center; justify-content:space-between; height: 64px; }
-    .brand { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0.01em; color: var(--ink); font-size: 18px; font-style: italic; display:flex; align-items:center; gap:10px; }
-    .brand-mark { width:28px; height:28px; border-radius:8px; background:var(--ink); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:500; }
-    .brand span { font-family: "Inter", system-ui, sans-serif; font-style: normal; font-weight: 400; color: var(--muted); margin-left: 2px; font-size: 14px; letter-spacing: 0.02em; }
-    .nav-links { display:flex; align-items:center; gap: 26px; }
-    .nav-links a { font-size: 13.5px; color: var(--muted); letter-spacing: 0.01em; }
-    .nav-links a:hover { color: var(--ink); }
+    .brand { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0.01em; color: var(--ink); font-size: 18px; font-style: italic; display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .brand-mark { width:28px; height:28px; border-radius:8px; background:var(--ink); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:500; letter-spacing:0.02em; position:relative; }
+    .brand-mark::after { content:""; position:absolute; bottom:-2px; right:-2px; width:8px; height:8px; border-radius:50%; background:var(--accent); border:2px solid #fff; }
+    .brand-text { display:flex; align-items:baseline; gap:8px; }
+    .brand-name { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0.01em; color: var(--ink); font-size: 18px; font-style: italic; }
+    .brand-desc { font-family: "Inter", system-ui, sans-serif; font-style: normal; font-weight: 400; color: var(--muted); font-size: 13px; letter-spacing: 0.02em; }
+    .nav-links { display:flex; align-items:center; gap: 6px; }
+    .nav-links a { font-size: 13.5px; color: var(--muted); letter-spacing: 0.01em; padding: 6px 10px; border-radius: 8px; transition: color 160ms ease, background 160ms ease; position: relative; }
+    .nav-links a:hover { color: var(--ink); background: var(--bg-2); }
     .nav-cta {
-      padding: 9px 15px;
+      padding: 8px 14px;
       border: 1px solid var(--ink);
       border-radius: 999px;
-      font-size: 13.5px;
+      font-size: 13px;
       color: #fff;
       background: var(--ink);
-      transition: transform 80ms ease, opacity 160ms ease;
+      transition: transform 80ms ease, opacity 160ms ease, box-shadow 200ms ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
     }
-    .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; }
+    .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 4px 12px rgba(20,20,19,0.12); }
 
     /* hero */
     .hero { padding: 96px 0 72px; border-bottom: 1px solid var(--line); position: relative; }
@@ -402,7 +407,10 @@
     <div class="wrap nav-inner">
       <a href="#" class="brand">
         <span class="brand-mark">v</span>
-        <span>vitals <span>small-model performance toolkit</span></span>
+        <span class="brand-text">
+          <span class="brand-name">vitals</span>
+          <span class="brand-desc">small-model performance toolkit</span>
+        </span>
       </a>
       <div class="nav-links">
         <a href="#proof">Proof</a>
