@@ -1,14 +1,12 @@
-<div align="center">
+# vitals
 
-# <span style="color:#00d992">⚡ vitals</span>
-
-### <span style="color:#f2f2f2">Give your AI agent a memory of its own infrastructure.</span>
+Give your AI agent a memory of its own infrastructure.
 
 <p>
-<a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL v3-00d992?style=flat-square" alt="License"></a>
+<a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL%20v3-00d992?style=flat-square" alt="License"></a>
 &nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.6.0-3d3a39?style=flat-square" alt="Version"></a>
 &nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/python-3.11%2B-2fd6a1?style=flat-square" alt="Python"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E2800-8b949e?style=flat-square" alt="LOC"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E4000-8b949e?style=flat-square" alt="LOC"></a>
 &nbsp;<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-stdio-00d992?style=flat-square" alt="MCP"></a>
 </p>
 
@@ -17,18 +15,29 @@
   &nbsp;·&nbsp;
   <code style="color:#b8b3b0">wires pi · Claude Code · Cursor · OpenCode · Codex CLI</code>
   &nbsp;·&nbsp;
-  <code style="color:#b8b3b0">~4900 LOC · 220 tests · GPL v3 · no daemon · no cloud</code>
+  <code style="color:#b8b3b0">~4000 LOC · 220 tests · GPL v3 · no daemon · no cloud</code>
 </p>
 
 <p>
-  <a href="https://github.com/anirudhprashant/" style="color:#00d992">→ landing page (github.com/anirudhprashant)</a>
+  <a href="https://github.com/anirudhprashant/agent-vitals/tree/main/docs" style="color:#00d992">→ landing page</a>
 </p>
-
-</div>
 
 ---
 
-## <span style="color:#00d992">▍</span> What your agent sees
+## Quick start
+
+```bash
+uv tool install agent-vitals
+av install    # detects hosts, wires MCP + priming skill
+```
+
+That's it. 30 seconds, no daemon, no cloud, no accounts.
+
+After install, restart your agent host so it picks up the new MCP server. Then the next time it runs, it'll call `vitals_summary` before risky operations — automatically.
+
+---
+
+## What your agent sees
 
 When your agent (pi, Claude Code, OpenCode, Cursor, Codex) calls `vitals_summary`, it gets:
 
@@ -45,7 +54,7 @@ That's not a CLI you read. That's a tool your agent calls from inside its own lo
 
 ---
 
-## <span style="color:#00d992">▍</span> Before / after
+## Before / after
 
 <table>
 <tr>
@@ -118,7 +127,7 @@ The diff is **vibes vs. data**.
 
 ---
 
-## <span style="color:#00d992">▍</span> Install
+## Install
 
 ```bash
 uv tool install agent-vitals
@@ -130,7 +139,7 @@ That's the whole setup. <span style="color:#00d992">30 seconds.</span>
 
 ---
 
-## <span style="color:#00d992">▍</span> Pre-action hooks (v0.3.0)
+## Pre-action hooks (v0.3.0)
 
 Priming asks the agent to call vitals. **Hooks refuse the operation** when it hasn't.
 
@@ -159,7 +168,7 @@ After `av hooks install`, the one-liner above is appended to your `~/.bashrc` / 
 
 **Bypass for emergencies:** `VITALS_BYPASS=1 crontab -e` skips the check.
 
-## <span style="color:#00d992">▍</span> What `av install` does
+## What `av install` does
 
 ```text
   $ av install
@@ -198,7 +207,7 @@ After `av hooks install`, the one-liner above is appended to your `~/.bashrc` / 
 
 ---
 
-## <span style="color:#00d992">▍</span> The five tools
+## The five tools
 
 | Tool | Returns | When the agent should reach for it |
 |---|---|---|
@@ -222,7 +231,7 @@ All tools are **local-only, read-only, safe to call repeatedly**. None of them m
 
 ---
 
-## <span style="color:#00d992">▍</span> The trigger table
+## The trigger table
 
 The table `av install` installs into your priming skill — so the agent knows when to reach for each tool **without you asking**:
 
@@ -239,12 +248,12 @@ The table `av install` installs into your priming skill — so the agent knows w
 
 > [!WARNING]
 > **Honesty note.** Priming isn't enforcement. The SKILL.md puts these triggers in front of the agent's face, but the agent still has to *remember* to follow them. In practice this catches ~30–40% of cases — better than nothing, not a magic bullet.
-> 
+>
 > **v0.3.0 changes this.** `av hooks install` deploys PATH-level wrappers around `crontab` and `systemctl --user` that *refuse* any mutation when the vitals stamp is older than 60 seconds. Read operations (`crontab -l`, `systemctl status`, etc.) are never gated. See [Pre-action hooks](#pre-action-hooks-v030) below.
 
 ---
 
-## <span style="color:#fb565b">▍</span> Anti-patterns this exists to prevent
+## Anti-patterns this exists to prevent
 
 > [!IMPORTANT]
 > These are the failure modes that made us build vitals. If you see an agent doing any of these, it's a sign the priming didn't reach them — or they need **v0.3.0 hooks**.
@@ -258,7 +267,7 @@ The table `av install` installs into your priming skill — so the agent knows w
 
 ---
 
-## <span style="color:#00d992">▍</span> What it scans
+## What it scans
 
 | Source | Path | What it finds |
 |---|---|---|
@@ -272,7 +281,7 @@ The table `av install` installs into your priming skill — so the agent knows w
 
 ---
 
-## <span style="color:#00d992">▍</span> CLI (humans only — for verification)
+## CLI (humans only — for verification)
 
 ```bash
 av                # one-shot health summary
@@ -301,7 +310,7 @@ av coach          # generate optimized system prompts from session data
 
 ---
 
-## <span style="color:#00d992">▍</span> Stack
+## Stack
 
 ```
 Python 3.11+    ──  type hints, tomllib, asyncio
@@ -313,11 +322,11 @@ mcp (FastMCP)   ──  MCP server, stdio transport
 pytest          ──  220 tests across 5 modules
 ```
 
-~4900 lines of Python + 220 tests + priming SKILL.md. GPL v3 licensed.
+~4000 lines of Python + 220 tests + priming SKILL.md. GPL v3 licensed.
 
 ---
 
-## <span style="color:#00d992">▍</span> Roadmap
+## Roadmap
 
 - [x] **v0.1.0** — `shadow` + `burnout` CLI commands
 - [x] **v0.2.0** — MCP server + `av install` for 5 host types
@@ -331,7 +340,7 @@ pytest          ──  220 tests across 5 modules
 
 ---
 
-## <span style="color:#00d992">▍</span> Contributing
+## Contributing
 
 Issues and PRs welcome. Two things to know:
 
@@ -342,7 +351,7 @@ When you open a PR, paste the output of `av shadow` on your box so we can see wh
 
 ---
 
-## <span style="color:#00d992">▍</span> License
+## License
 
 GPL v3. See [`LICENSE`](LICENSE).
 

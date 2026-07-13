@@ -56,7 +56,7 @@
     .nav-inner { display:flex; align-items:center; justify-content:space-between; height: 64px; }
     .brand { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0.01em; color: var(--ink); font-size: 18px; font-style: italic; text-decoration:none; }
     .nav-links { display:flex; align-items:center; gap: 6px; }
-    .nav-links a { font-size: 13.5px; color: var(--muted); letter-spacing: 0.01em; padding: 6px 10px; border-radius: 8px; transition: color 160ms ease, background 160ms ease; position: relative; }
+    .nav-links a { font-size: 13.5px; color: var(--muted); letter-spacing: 0.01em; padding: 6px 10px; border-radius: 8px; transition: color 160ms ease, background 160ms ease; }
     .nav-links a:hover { color: var(--ink); background: var(--bg-2); }
     .nav-cta {
       padding: 8px 14px;
@@ -395,6 +395,10 @@
     /* fade-in */
     .fade { opacity: 0; transform: translateY(14px); transition: opacity 700ms ease, transform 700ms ease; }
     .fade.visible { opacity: 1; transform: translateY(0); }
+
+    /* divider */
+    .section-divider { height: 1px; background: var(--line); border: none; margin: 0; }
+    .section-divider.accent { background: linear-gradient(90deg, var(--accent) 0%, var(--line) 60%); }
   </style>
 </head>
 <body>
