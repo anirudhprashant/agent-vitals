@@ -71,15 +71,7 @@
     .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 4px 12px rgba(20,20,19,0.12); }
 
     /* hero */
-    .hero {
-      padding: 100px 0 80px;
-      border-bottom: 1px solid var(--line);
-      position: relative;
-      background-image: radial-gradient(circle, var(--ink) 0.5px, transparent 0.5px);
-      background-size: 24px 24px;
-      background-position: 0 0;
-      opacity: 0.98;
-    }
+    .hero { padding: 100px 0 80px; border-bottom: 1px solid var(--line); position: relative; background-image: radial-gradient(circle, var(--ink) 0.5px, transparent 0.5px); background-size: 24px 24px; background-position: 0 0; opacity: 0.98; }
     .hero::before {
       content: "";
       position: absolute;
@@ -266,6 +258,11 @@
       color: var(--ink);
       overflow-x: auto;
     }
+    .example img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
 
     /* tools grid */
     .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -413,8 +410,8 @@
     <div class="wrap nav-inner">
       <a href="#" class="brand">vitals</a>
       <div class="nav-links">
+        <a href="#features">Features</a>
         <a href="#proof">Proof</a>
-        <a href="#tools">Tools</a>
         <a href="#how">How it works</a>
         <a href="https://github.com/anirudhprashant/agent-vitals">GitHub →</a>
       </div>
@@ -448,7 +445,7 @@
       </div>
     </div>
   </section>
-  <hr class="section-transition" />
+
   <section id="features">
     <div class="wrap">
       <div class="section-head fade">
@@ -468,6 +465,7 @@
           <div class="example-header">
             <span class="example-title">Burnout tracking</span>
             <span class="example-tag">always-on</span>
+          </div>
           <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Per-agent completion rates from pi run-history and Claude Code sessions. Trends tell you if the agent is improving or degrading. Stuck-session heuristic catches runaway loops before they eat your context.</p>
         </div>
         <div class="example fade">
@@ -487,10 +485,11 @@
       </div>
     </div>
   </section>
-  <hr class="section-transition" />
+
   <section id="proof">
     <div class="wrap">
       <div class="section-head fade">
+        <span class="label">Proof</span>
         <h2>The numbers behind the claim.</h2>
         <p>Measured from real session data, not marketing copy.</p>
       </div>
@@ -518,7 +517,7 @@
       </div>
     </div>
   </section>
-    <hr class="section-transition" />
+
   <section id="why">
     <div class="wrap">
       <div class="section-head fade">
@@ -547,50 +546,6 @@
             <span class="example-tag">performance</span>
           </div>
           <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">The gap between small and large models isn't reasoning — it's context quality, tool selection, and prompt structure. vitals extracts the playbook from your best runs and makes it reusable.</p>
-        </div>
-      </div>
-    </div>
-    <hr class="section-transition" />
-  </section>
-
-  <section id="before-after">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Before / after</span>
-        <h2>The gap is context quality, not model size.</h2>
-        <p>Same model. Same hardware. The difference is whether the agent has a playbook.</p>
-      </div>
-      <div class="ba fade">
-        <div class="ba-col bad">
-          <div class="ba-title">
-            <span class="ba-icon">✗</span>
-            Without vitals
-          </div>
-          <pre>User: schedule a daily backup at 2am
-
-Agent: yep, done.
-
-  0 2 * * * /home/me/backup.sh
-        >> /tmp/backup.log 2&gt;&1
-
-… and /home/me/backup.sh doesn&#39;t exist.
-Crontab fails silently forever.</pre>
-        </div>
-        <div class="ba-col good">
-          <div class="ba-title">
-            <span class="ba-icon">✓</span>
-            With vitals
-          </div>
-          <pre>User: schedule a daily backup at 2am
-
-Agent: one moment — verifying first.
-
-  → shadow_stale       (no other cron broken)
-  → check backup.sh    (exists? writable?)
-  → write crontab entry
-  → shadow_stale       (confirm no breakage)
-
-  ✓ crontab updated.</pre>
         </div>
       </div>
     </div>
@@ -824,7 +779,6 @@ the exact line, then answer.
       </div>
     </div>
   </section>
-  <hr class="section-transition" />
 
   <section id="how">
     <div class="wrap">
@@ -858,17 +812,18 @@ the exact line, then answer.
           </div>
         </div>
       </div>
-    </div>
       <div class="examples fade" style="margin-top:28px;">
         <div class="example">
           <div class="example-header">
             <span class="example-title">How data flows</span>
             <span class="example-tag">architecture</span>
           </div>
-          <img src="docs/architecture.png" alt="agent-vitals architecture diagram" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
+          <img src="architecture.png" alt="agent-vitals architecture diagram" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
         </div>
       </div>
+    </div>
   </section>
+
   <section id="screenshots">
     <div class="wrap">
       <div class="section-head fade">
@@ -882,12 +837,11 @@ the exact line, then answer.
             <span class="example-title">Terminal output</span>
             <span class="example-tag">Ghostty</span>
           </div>
-          <img src="docs/terminal.png" alt="agent-vitals terminal screenshot" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
+          <img src="terminal.png" alt="agent-vitals terminal screenshot" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
         </div>
       </div>
     </div>
   </section>
-  <hr class="section-transition" />
 
   <section id="install">
     <div class="wrap">
@@ -930,40 +884,6 @@ av coach --harness</pre>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="https://github.com/anirudhprashant/agent-vitals" class="btn">★ Star on GitHub</a>
             <a href="https://github.com/anirudhprashant/agent-vitals/issues" class="btn btn-ghost">Open an issue</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section id="philosophy">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Philosophy</span>
-        <h2>Local-first. Read-only. No telemetry.</h2>
-        <p>vitals is built like a good monitoring tool: it observes, reports, and never mutates. The agent calls it, the human reads it, and nothing changes unless you explicitly run a mutating command.</p>
-      </div>
-      <div class="flow fade">
-        <div class="node-wrap">
-          <div class="node">
-            <div class="node-num">1</div>
-            <h4>Observe</h4>
-            <p>Scanners read your configs, session JSONLs, and history files. They never write, never send data anywhere, never spawn background services.</p>
-          </div>
-        </div>
-        <div class="arrow-col">→</div>
-        <div class="node-wrap">
-          <div class="node">
-            <div class="node-num">2</div>
-            <h4>Report</h4>
-            <p>Output is plain text or JSON. The agent gets a health summary. You get actionable recommendations. No dashboards, no accounts, no cloud.</p>
-          </div>
-        </div>
-        <div class="arrow-col">→</div>
-        <div class="node-wrap">
-          <div class="node">
-            <div class="node-num">3</div>
-            <h4>Verify</h4>
-            <p>Pre-action hooks gate mutations until vitals is fresh. Reads are never blocked. You stay in control, always.</p>
           </div>
         </div>
       </div>
