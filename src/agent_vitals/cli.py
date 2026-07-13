@@ -263,7 +263,11 @@ def shadow(
     watch: bool = typer.Option(False, "--watch", "-w", help="Live refresh every 2s."),
     interval: float = typer.Option(2.0, "--interval", help="Watch interval in seconds."),
 ) -> None:
-    """List everything scheduled or configured to act on your behalf."""
+    """Show everything scheduled or configured to act on your behalf.
+
+    Call this before infra changes, before recommending MCP installs, or
+    whenever you need to know what's running on the user's machine.
+    """
     if watch:
         watch_shadow(console, interval=interval)
         return
@@ -278,7 +282,11 @@ def burnout(
     watch: bool = typer.Option(False, "--watch", "-w", help="Live refresh every 30s."),
     interval: float = typer.Option(30.0, "--interval", help="Watch interval in seconds."),
 ) -> None:
-    """Show agent task completion / abandonment metrics."""
+    """Show agent task completion / abandonment metrics for the last N days.
+
+    Call this after long tasks, to compare your run against baseline, or
+    when you suspect the agent is degrading.
+    """
     if watch:
         watch_burnout(console, days=days, interval=interval)
         return
@@ -292,7 +300,11 @@ def burnout(
 
 @app.command()
 def drift() -> None:
-    """Find inconsistencies across detected agent hosts (MCP drift, skills, hooks)."""
+    """Find inconsistencies across detected agent hosts (MCP drift, skills, hooks).
+
+    Call this when the user asks about cross-tool config consistency, or
+    before recommending config changes across multiple hosts.
+    """
     findings = detect_all_drift()
     console.print(render_drift_report(findings).rstrip())
 
@@ -304,6 +316,8 @@ def cost() -> None:
     Uses the actual model observed in each session for pricing when available,
     falling back to Sonnet-class defaults for unknown models. Includes model
     downgrade suggestions when high-tier models are used for low-output work.
+
+    Call this for monthly budget review, or whenever the bill looks high.
     """
     by_host = scan_all_sessions()
     console.print(render_cost_report(by_host).rstrip())
@@ -326,6 +340,8 @@ def tokens(
     Parses session JSONLs and attributes token usage to each tool call.
     Shows total and average tokens per tool, so you can spot expensive
     tools that might benefit from caching, batching, or replacement.
+
+    Call this after a cost spike, or when you want to optimize token usage.
     """
     usage = scan_tool_tokens()
     console.print(render_tokens_report(usage, limit=limit).rstrip())
@@ -356,6 +372,8 @@ def loops(
     process to exit is legitimate, not a loop. File edits are compared by
     content, not just count, so progressive changes to the same file are
     not flagged.
+
+    Call this after a session is "taking forever" or cost spikes.
     """
     findings = find_loops()
     console.print(render_loop_report(findings, limit=limit).rstrip())
@@ -366,11 +384,14 @@ def ssh(
     limit: int = typer.Option(20, "--limit", "-n", help="Max findings to show."),
 ) -> None:
     """Detect SSH polling loops — repeated SSH commands to the same host.
-    
+
     SSH polling is a common doom loop pattern where an agent repeatedly
     SSHes into a remote host waiting for some state change. This detector
     identifies such patterns and suggests fixes like adding timeouts,
     backoff, or using proper monitoring.
+
+    Call this after a session with heavy SSH usage, or when token bill is
+    unexplained.
     """
     findings = find_loops()
     ssh_findings = [f for f in findings if f.kind == "ssh_poll"]
@@ -400,6 +421,8 @@ def unused() -> None:
     Every registered tool is part of every agent turn's context (function
     name + JSON schema). On average, unused tools cost 5-10KB per turn of
     pure context overhead. Removing them is a free speedup.
+
+    Call this after installing a new MCP server, or weekly.
     """
     findings = find_unused_tools()
     console.print(render_unused_report(findings).rstrip())
@@ -408,10 +431,12 @@ def unused() -> None:
 @app.command()
 def overlap() -> None:
     """Detect overlapping MCP tools across servers.
-    
+
     Finds MCP servers that share tool names or have similar tool names,
     suggesting possible redundancy. Removing overlapping tools reduces
     per-turn context weight.
+
+    Call this after installing new MCP servers, or when context feels bloated.
     """
     overlaps = find_overlapping_tools()
     console.print(render_overlap_report(overlaps).rstrip())
@@ -425,16 +450,19 @@ def coach(
     harness: bool = typer.Option(False, "--harness", help="Output a complete system prompt instead of session analysis."),
 ) -> None:
     """Generate optimized system prompts for small models.
-    
+
     Analyzes your actual session data to extract opus-level operational
     patterns: proven tool sequences, failure recoveries, context efficiency
     rules, and tool selection discipline. This is how you make a small model
     perform like Claude Code / Opus / Fable — not by changing the model,
     but by giving it a better playbook derived from your own successful runs.
-    
+
     Based on reverse-engineering of Claude Code harness, Opus 4.x, and
     Fable 5 system prompts. The gap between small and large models is NOT
     reasoning — it is context quality, tool selection, and prompt structure.
+
+    Call this when you want to make your current model smarter without
+    changing it, or when the user asks for a system prompt optimization.
     """
     
     if harness:
@@ -485,7 +513,11 @@ def sessions(
     limit: int = typer.Option(20, "--limit", "-n", help="Max rows to show."),
     suggest: bool = typer.Option(False, "--suggest", help="Show compaction suggestions."),
 ) -> None:
-    """List agent session files (Claude Code, pi, ...) with age + size."""
+    """List agent session files (Claude Code, pi, ...) with age + size.
+
+    Call this when the user asks about old session files, disk usage,
+    or wants to audit session history.
+    """
     found = discover_sessions()
     found = filter_sessions(
         found,
