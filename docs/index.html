@@ -41,12 +41,12 @@
     }
     a { color: var(--muted); text-decoration: none; transition: color 160ms ease; }
     a:hover { color: var(--ink); }
-    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
 
     /* nav */
     nav {
       border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,0.88);
+      background: rgba(255,255,255,0.92);
       backdrop-filter: blur(20px) saturate(140%);
       -webkit-backdrop-filter: blur(20px) saturate(140%);
       position: sticky;
@@ -71,7 +71,15 @@
     .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 4px 12px rgba(20,20,19,0.12); }
 
     /* hero */
-    .hero { padding: 96px 0 72px; border-bottom: 1px solid var(--line); position: relative; }
+    .hero {
+      padding: 100px 0 80px;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+      background-image: radial-gradient(circle, var(--ink) 0.5px, transparent 0.5px);
+      background-size: 24px 24px;
+      background-position: 0 0;
+      opacity: 0.98;
+    }
     .hero::before {
       content: "";
       position: absolute;
@@ -185,7 +193,7 @@
       background: var(--bg-2);
       border: 1px solid var(--line);
       border-radius: 16px;
-      padding: 22px;
+      padding: 24px;
       position: relative;
       overflow: hidden;
       transition: transform 140ms ease, border-color 160ms ease;
@@ -201,9 +209,9 @@
       transition: opacity 160ms ease;
     }
     .stat:hover::before { opacity: 1; }
-    .stat-num { font-family: "Instrument Serif", Georgia, serif; font-size: 34px; color: var(--ink); line-height: 1.05; letter-spacing: -0.02em; }
-    .stat-label { margin-top: 8px; font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .stat-foot { margin-top: 10px; font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; color: var(--subtle); letter-spacing: 0.04em; }
+    .stat-num { font-family: "Instrument Serif", Georgia, serif; font-size: 38px; color: var(--ink); line-height: 1.05; letter-spacing: -0.025em; }
+    .stat-label { margin-top: 10px; font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+    .stat-foot { margin-top: 12px; font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10.5px; color: var(--subtle); letter-spacing: 0.06em; text-transform: uppercase; }
 
     /* before/after */
     .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
@@ -396,9 +404,8 @@
     .fade { opacity: 0; transform: translateY(14px); transition: opacity 700ms ease, transform 700ms ease; }
     .fade.visible { opacity: 1; transform: translateY(0); }
 
-    /* divider */
-    .section-divider { height: 1px; background: var(--line); border: none; margin: 0; }
-    .section-divider.accent { background: linear-gradient(90deg, var(--accent) 0%, var(--line) 60%); }
+    /* section transitions */
+    .section-transition { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--line) 20%, var(--line) 80%, transparent 100%); border: none; margin: 0; }
   </style>
 </head>
 <body>
@@ -441,7 +448,47 @@
       </div>
     </div>
   </section>
-
+  <hr class="section-transition" />
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head fade">
+        <span class="label">Features</span>
+        <h2>Everything you need to keep agents honest.</h2>
+        <p>From silent breakage to token burn, vitals covers the failure modes most monitoring tools miss.</p>
+      </div>
+      <div class="examples">
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Shadow & stale detection</span>
+            <span class="example-tag">always-on</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Cron jobs pointing at deleted binaries. MCP servers that fail to register. Systemd timers for services that don't exist. `shadow_list` shows everything; `shadow_stale` shows only what's broken.</p>
+        </div>
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Burnout tracking</span>
+            <span class="example-tag">always-on</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Per-agent completion rates from pi run-history and Claude Code sessions. Trend columns tell you if your agent is improving or degrading. Stuck-session heuristic catches runaway loops before they eat your context.</p>
+        </div>
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Efficiency suite</span>
+            <span class="example-tag">v0.6.0</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Doom-loop detection, unused-tool finder, token spend with Effective Tokens, SSH polling detector, overlap detection, session compaction, and coaching — all from your actual session data.</p>
+        </div>
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Pre-action hooks</span>
+            <span class="example-tag">v0.3.0</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">PATH-level wrappers around <code>crontab</code> and <code>systemctl --user</code> that refuse mutations when vitals is stale. Reads are never gated. Bypass with <code>VITALS_BYPASS=1</code> for emergencies.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <hr class="section-transition" />
   <section id="proof">
     <div class="wrap">
       <div class="section-head fade">
@@ -472,6 +519,40 @@
         </div>
       </div>
     </div>
+  </section>
+    <hr class="section-transition" />
+  <section id="why">
+    <div class="wrap">
+      <div class="section-head fade">
+        <span class="label">Why this matters</span>
+        <h2>Agents are only as good as their environment.</h2>
+        <p>You wouldn't deploy a service without health checks, logs, or alerts. Yet most agents run blind — no awareness of their own cron jobs, config drift, token spend, or stuck sessions. vitals fixes that.</p>
+      </div>
+      <div class="examples">
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Silent breakage is the norm</span>
+            <span class="example-tag">reality</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">A cron job pointing at a deleted binary. An MCP server that silently fails to register. A session stuck in a loop burning tokens. These don't surface until something breaks — often in production, often at 2am.</p>
+        </div>
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Context bloat compounds</span>
+            <span class="example-tag">cost</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Every unused MCP tool costs 5–10KB per turn. A single doom loop can cost 10x more tokens than a clean run. Over weeks, this turns a $20 token bill into $200 — and you won't notice until the invoice arrives.</p>
+        </div>
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Small models need playbooks</span>
+            <span class="example-tag">performance</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">The gap between small and large models isn't reasoning — it's context quality, tool selection, and prompt structure. vitals extracts the playbook from your best runs and makes it reusable.</p>
+        </div>
+      </div>
+    </div>
+    <hr class="section-transition" />
   </section>
 
   <section id="before-after">
@@ -745,6 +826,7 @@ the exact line, then answer.
       </div>
     </div>
   </section>
+  <hr class="section-transition" />
 
   <section id="how">
     <div class="wrap">
@@ -780,6 +862,7 @@ the exact line, then answer.
       </div>
     </div>
   </section>
+  <hr class="section-transition" />
 
   <section id="install">
     <div class="wrap">
@@ -822,6 +905,40 @@ av coach --harness</pre>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="https://github.com/anirudhprashant/agent-vitals" class="btn">★ Star on GitHub</a>
             <a href="https://github.com/anirudhprashant/agent-vitals/issues" class="btn btn-ghost">Open an issue</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="philosophy">
+    <div class="wrap">
+      <div class="section-head fade">
+        <span class="label">Philosophy</span>
+        <h2>Local-first. Read-only. No telemetry.</h2>
+        <p>vitals is built like a good monitoring tool: it observes, reports, and never mutates. The agent calls it, the human reads it, and nothing changes unless you explicitly run a mutating command.</p>
+      </div>
+      <div class="flow fade">
+        <div class="node-wrap">
+          <div class="node">
+            <div class="node-num">1</div>
+            <h4>Observe</h4>
+            <p>Scanners read your configs, session JSONLs, and history files. They never write, never send data anywhere, never spawn background services.</p>
+          </div>
+        </div>
+        <div class="arrow-col">→</div>
+        <div class="node-wrap">
+          <div class="node">
+            <div class="node-num">2</div>
+            <h4>Report</h4>
+            <p>Output is plain text or JSON. The agent gets a health summary. You get actionable recommendations. No dashboards, no accounts, no cloud.</p>
+          </div>
+        </div>
+        <div class="arrow-col">→</div>
+        <div class="node-wrap">
+          <div class="node">
+            <div class="node-num">3</div>
+            <h4>Verify</h4>
+            <p>Pre-action hooks gate mutations until vitals is fresh. Reads are never blocked. You stay in control, always.</p>
           </div>
         </div>
       </div>
