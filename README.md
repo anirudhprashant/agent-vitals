@@ -54,9 +54,6 @@ After install, restart your agent host so it picks up the new MCP server. Then t
 
 ---
 
- ## What your agent sees
----
-
 ## What your agent sees
 
 When your agent (pi, Claude Code, OpenCode, Cursor, Codex) calls `vitals_summary`, it gets:
@@ -72,7 +69,22 @@ When your agent (pi, Claude Code, OpenCode, Cursor, Codex) calls `vitals_summary
 
 That's not a CLI you read. That's a tool your agent calls from inside its own loop — before it does anything risky.
 
+![Terminal](docs/terminal.png)
+
 ---
+
+## How it works
+
+![Architecture](docs/architecture.png)
+
+Three moves. No daemon. No cloud.
+
+1. **Install** — `uv tool install agent-vitals && av install`. Registers the MCP server and priming skill for your agent host.
+2. **Observe** — the agent calls `vitals_summary` before risky operations. Hooks gate `crontab` / `systemctl` until vitals is fresh.
+3. **Optimize** — run `av cost`, `av loops`, `av coach` to extract patterns and shrink the model's workload.
+
+---
+
 
 ## Before / after
 

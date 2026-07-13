@@ -453,8 +453,8 @@
     <div class="wrap">
       <div class="section-head fade">
         <span class="label">Features</span>
-        <h2>Everything you need to keep agents honest.</h2>
-        <p>From silent breakage to token burn, vitals covers the failure modes most monitoring tools miss.</p>
+        <h2>The failure modes most tools miss.</h2>
+        <p>Silent cron breakage. Doom loops. Unused MCP tools eating context. Token burn you don't notice until the invoice. vitals catches all of them.</p>
       </div>
       <div class="examples">
         <div class="example fade">
@@ -462,14 +462,13 @@
             <span class="example-title">Shadow & stale detection</span>
             <span class="example-tag">always-on</span>
           </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Cron jobs pointing at deleted binaries. MCP servers that fail to register. Systemd timers for services that don't exist. `shadow_list` shows everything; `shadow_stale` shows only what's broken.</p>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Cron jobs pointing at deleted binaries. MCP servers that fail to register. Systemd timers for dead services. <code>shadow_list</code> shows everything; <code>shadow_stale</code> shows only what's broken.</p>
         </div>
         <div class="example fade">
           <div class="example-header">
             <span class="example-title">Burnout tracking</span>
             <span class="example-tag">always-on</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Per-agent completion rates from pi run-history and Claude Code sessions. Trend columns tell you if your agent is improving or degrading. Stuck-session heuristic catches runaway loops before they eat your context.</p>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Per-agent completion rates from pi run-history and Claude Code sessions. Trends tell you if the agent is improving or degrading. Stuck-session heuristic catches runaway loops before they eat your context.</p>
         </div>
         <div class="example fade">
           <div class="example-header">
@@ -483,7 +482,7 @@
             <span class="example-title">Pre-action hooks</span>
             <span class="example-tag">v0.3.0</span>
           </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">PATH-level wrappers around <code>crontab</code> and <code>systemctl --user</code> that refuse mutations when vitals is stale. Reads are never gated. Bypass with <code>VITALS_BYPASS=1</code> for emergencies.</p>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">PATH wrappers around <code>crontab</code> and <code>systemctl --user</code> that refuse mutations when vitals is stale. Reads are never blocked. Bypass with <code>VITALS_BYPASS=1</code> for emergencies.</p>
         </div>
       </div>
     </div>
@@ -492,9 +491,8 @@
   <section id="proof">
     <div class="wrap">
       <div class="section-head fade">
-        <span class="label">Proof</span>
         <h2>The numbers behind the claim.</h2>
-        <p>These are measured effects from real session data, not marketing copy.</p>
+        <p>Measured from real session data, not marketing copy.</p>
       </div>
       <div class="stats fade">
         <div class="stat">
@@ -858,6 +856,33 @@ the exact line, then answer.
             <h4>Optimize</h4>
             <p>Run <code>av cost</code>, <code>av loops</code>, <code>av coach</code> to extract patterns and shrink the model's workload.</p>
           </div>
+        </div>
+      </div>
+    </div>
+      <div class="examples fade" style="margin-top:28px;">
+        <div class="example">
+          <div class="example-header">
+            <span class="example-title">How data flows</span>
+            <span class="example-tag">architecture</span>
+          </div>
+          <img src="docs/architecture.png" alt="agent-vitals architecture diagram" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
+        </div>
+      </div>
+  </section>
+  <section id="screenshots">
+    <div class="wrap">
+      <div class="section-head fade">
+        <span class="label">Screenshots</span>
+        <h2>What it looks like in your terminal.</h2>
+        <p>Real output from running vitals on a real machine.</p>
+      </div>
+      <div class="examples fade">
+        <div class="example">
+          <div class="example-header">
+            <span class="example-title">Terminal output</span>
+            <span class="example-tag">Ghostty</span>
+          </div>
+          <img src="docs/terminal.png" alt="agent-vitals terminal screenshot" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
         </div>
       </div>
     </div>
