@@ -13,6 +13,8 @@ Run `av --help` to see everything.
 from __future__ import annotations
 
 import sys
+import json
+import gzip
 from pathlib import Path
 
 import typer
@@ -48,7 +50,6 @@ from agent_vitals.sessions import (
     render_sessions_table,
 )
 from agent_vitals.scanners import scan_all
-from agent_vitals.sessions import filter_sessions
 from agent_vitals.stamp import describe_age, read_age, touch
 
 
@@ -435,6 +436,7 @@ def coach(
     Fable 5 system prompts. The gap between small and large models is NOT
     reasoning — it is context quality, tool selection, and prompt structure.
     """
+    
     if harness:
         # Output complete harness prompt
         prompt = coach_mod.generate_harness_prompt(model_tier=model_tier)
@@ -513,7 +515,7 @@ def compact(
     events up to --keep-last. This reduces context bloat and speeds up
     future scans.
     """
-    import json
+
     import shutil
     
     found = discover_sessions()
