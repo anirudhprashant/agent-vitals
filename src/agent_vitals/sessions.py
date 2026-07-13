@@ -56,20 +56,22 @@ def _scan_jsonl(path: Path) -> tuple[int | None, float | None, float | None]:
     first_ts: float | None = None
     last_ts: float | None = None
     try:
-        with path.open("rb") as f:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
             for line in f:
                 count += 1
                 if count > 5000:
                     # Don't keep counting past a reasonable cap.
                     break
-                if not first_ts:
-                    try:
-                        rec = json.loads(line)
-                        ts = rec.get("timestamp") or rec.get("ts")
-                        if isinstance(ts, (int, float)):
-                            first_ts = float(ts)
-                    except (json.JSONDecodeError, ValueError):
-                        pass
+                try:
+                    rec = json.loads(line)
+                    ts = rec.get("timestamp") or rec.get("ts")
+                    if isinstance(ts, (int, float)):
+                        ts_f = float(ts)
+                        if first_ts is None:
+                            first_ts = ts_f
+                        last_ts = ts_f
+                except (json.JSONDecodeError, ValueError):
+                    pass
     except OSError:
         return None, None, None
     return count, first_ts, last_ts

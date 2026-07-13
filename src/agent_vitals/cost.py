@@ -34,6 +34,14 @@ MODEL_PRICING: dict[str, dict[str, float]] = {
     "_default":                {"input": 3.0,   "output": 15.0,  "cache_read": 0.30,  "cache_write": 3.75},
 }
 
+# Skip records with very large string values (inline base64 images, etc.).
+_MAX_RECORD_BYTES = 200_000
+
+def _should_skip_record(line: str) -> bool:
+    return len(line) > _MAX_RECORD_BYTES
+
+
+
 
 @dataclass
 class TokenBucket:
@@ -89,10 +97,12 @@ def scan_claude_code_session(path: Path) -> tuple[TokenBucket, str | None]:
     bucket = TokenBucket()
     model: str | None = None
     try:
-        with path.open("rb") as f:
-            for line in f:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
+            for raw_line in f:
+                if _should_skip_record(raw_line):
+                    continue
                 try:
-                    rec = json.loads(line)
+                    rec = json.loads(raw_line)
                 except (json.JSONDecodeError, ValueError):
                     continue
                 if not isinstance(rec, dict):
@@ -113,7 +123,6 @@ def scan_claude_code_session(path: Path) -> tuple[TokenBucket, str | None]:
         pass
     return bucket, model
 
-
 def scan_pi_session(path: Path) -> tuple[TokenBucket, str | None]:
     """Parse a pi session JSONL. Returns (bucket, model).
 
@@ -123,10 +132,12 @@ def scan_pi_session(path: Path) -> tuple[TokenBucket, str | None]:
     bucket = TokenBucket()
     model: str | None = None
     try:
-        with path.open("rb") as f:
-            for line in f:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
+            for raw_line in f:
+                if _should_skip_record(raw_line):
+                    continue
                 try:
-                    rec = json.loads(line)
+                    rec = json.loads(raw_line)
                 except (json.JSONDecodeError, ValueError):
                     continue
                 if not isinstance(rec, dict):

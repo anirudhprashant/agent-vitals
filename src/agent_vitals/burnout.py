@@ -12,6 +12,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Skip records with very large string values (inline base64 images, etc.).
+_MAX_RECORD_BYTES = 200_000
+
+def _should_skip_record(line: str) -> bool:
+    return len(line) > _MAX_RECORD_BYTES
+
+
+
 
 # ---------- pi subagent history ----------
 
@@ -69,9 +77,11 @@ def scan_pi_run_history(days: int = 7) -> list[AgentStats]:
     cutoff = datetime.now(timezone.utc).timestamp() - days * 86400
     by_agent: dict[str, AgentStats] = {}
     try:
-        with path.open() as f:
-            for line in f:
-                line = line.strip()
+        with path.open("r", encoding="utf-8", errors="replace") as f:
+            for raw_line in f:
+                if _should_skip_record(raw_line):
+                    continue
+                line = raw_line.strip()
                 if not line:
                     continue
                 try:
@@ -107,7 +117,13 @@ def scan_pi_run_history(days: int = 7) -> list[AgentStats]:
 
 
 def scan_claude_code_sessions(days: int = 7) -> dict:
-    """High-level stats from Claude Code session JSONL files."""
+    """High-level stats from Claude Code session JSONL files.
+
+    Only counts records that represent actual agent activity: assistant,
+    user, tool_use, and tool_result. Metadata lines (mode, permission-mode,
+    system, hook_success, etc.) are ignored so the event count reflects
+    real turns, not session plumbing.
+    """
     projects_dir = Path.home() / ".claude/projects"
     if not projects_dir.exists():
         return {"sessions": 0, "events": 0, "largest_session": 0, "stuck_sessions": []}
@@ -116,6 +132,7 @@ def scan_claude_code_sessions(days: int = 7) -> dict:
     event_count = 0
     largest = 0
     stuck_sessions: list[dict] = []
+    _EVENT_TYPES = {"assistant", "user", "tool_use", "tool_result"}
     for project_dir in projects_dir.iterdir():
         if not project_dir.is_dir():
             continue
@@ -128,9 +145,9 @@ def scan_claude_code_sessions(days: int = 7) -> dict:
                 continue
             session_count += 1
             lines = 0
-            last_type = None
+            last_event_type: str | None = None
             try:
-                with jsonl.open() as f:
+                with jsonl.open(encoding="utf-8", errors="replace") as f:
                     for line in f:
                         line = line.strip()
                         if not line:
@@ -139,8 +156,11 @@ def scan_claude_code_sessions(days: int = 7) -> dict:
                             rec = json.loads(line)
                         except json.JSONDecodeError:
                             continue
-                        lines += 1
-                        last_type = rec.get("type")
+                        if not isinstance(rec, dict):
+                            continue
+                        if rec.get("type") in _EVENT_TYPES:
+                            lines += 1
+                            last_event_type = rec.get("type")
             except OSError:
                 continue
             event_count += lines
@@ -153,7 +173,7 @@ def scan_claude_code_sessions(days: int = 7) -> dict:
                         "session": jsonl.stem,
                         "project": project_dir.name,
                         "events": lines,
-                        "last_type": last_type,
+                        "last_type": last_event_type,
                     }
                 )
     stuck_sessions.sort(key=lambda s: -s["events"])

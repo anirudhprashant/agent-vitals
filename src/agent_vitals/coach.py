@@ -11,6 +11,7 @@ This module extracts what actually works from your session data and
 turns it into reusable prompt fragments and playbooks.
 """
 
+
 from __future__ import annotations
 
 import json
@@ -19,6 +20,14 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+# Skip records with very large string values (inline base64 images, etc.).
+_MAX_RECORD_BYTES = 200_000
+
+def _should_skip_record(line: str) -> bool:
+    return len(line) > _MAX_RECORD_BYTES
+
+
 
 
 @dataclass

@@ -542,31 +542,32 @@ def compact(
     keep_last: int = typer.Option(1000, "--keep-last", help="Keep the last N events in each session."),
 ) -> None:
     """Compact large session files by archiving old events.
-    
+
     Creates a backup .jsonl.bak file, then keeps only the most recent
     events up to --keep-last. This reduces context bloat and speeds up
     future scans.
     """
 
     import shutil
-    
+
     found = discover_sessions()
     if older_than is not None:
         found = [s for s in found if s.age_days >= older_than]
     found = [s for s in found if s.size_bytes >= larger_than]
-    
+
     if not found:
         console.print("compact: no sessions match compaction criteria\n")
         return
-    
+
     console.print(f"compact: {len(found)} session(s) eligible for compaction\n")
-    
+
     total_savings = 0
     for s in found:
         backup = s.path.with_suffix(".jsonl.bak")
         if backup.exists():
+            console.print(f"  [dim]skip[/dim] {s.path.name}: backup already exists (.jsonl.bak)")
             continue
-        
+
         # Read all events
         events = []
         try:
@@ -578,15 +579,16 @@ def compact(
                         continue
         except OSError:
             continue
-        
+
         if len(events) <= keep_last:
+            console.print(f"  [dim]skip[/dim] {s.path.name}: {len(events)} events <= keep_last ({keep_last})")
             continue
-        
+
         # Keep last N events
         kept = events[-keep_last:]
         removed = len(events) - len(kept)
         original_size = s.size_bytes
-        
+
         if not dry_run:
             try:
                 shutil.copy2(s.path, backup)
@@ -606,9 +608,9 @@ def compact(
             estimated_saved = avg_event_size * removed
             total_savings += estimated_saved
             console.print(f"  [yellow]~[/yellow] {s.path.name}: {removed} events would be removed, ~{estimated_saved / 1024:.1f}K saved")
-    
+
     if dry_run:
-        console.print(f"\n[dim]Dry run only. Use --no-dry-run to actually compact.[/dim]")
+        console.print(f"\n[dim]Dry run: ~{total_savings / 1024:.1f}K total savings across {len(found)} files. Use --no-dry-run to apply.[/dim]")
     else:
         console.print(f"\n[green]✓[/green] Total saved: {total_savings / 1024:.1f}K across {len(found)} files")
         console.print(f"  Backups saved as .jsonl.bak — delete when satisfied")

@@ -59,6 +59,16 @@ POLLING_PREFIXES: tuple[str, ...] = (
 # this many times. Structure = command with literals replaced by placeholders.
 SOFT_LOOP_THRESHOLD = 20
 
+# Skip records with very large string values (inline base64 images, etc.).
+# These bloat session files but carry no signal for loop / tool analysis.
+_MAX_RECORD_BYTES = 200_000  # ~200KB
+
+
+def _should_skip_record(line: str) -> bool:
+    return len(line) > _MAX_RECORD_BYTES
+
+
+
 def _command_signature(cmd: str) -> str:
     """Normalize a bash command to a structural signature.
 
@@ -231,25 +241,28 @@ def _extract_ssh_target(cmd: str) -> str | None:
 
 def _scan_session_for_ssh_loops(path: Path) -> list[LoopFinding]:
     """Scan a session for SSH soft loops.
-    
+
     Detects repeated SSH commands to the same target with similar
     structure. Unlike generic soft-loop detection, this is specific
     to SSH and provides actionable remediation advice.
     """
     findings: list[LoopFinding] = []
     ssh_counts: Counter[str] = Counter()
-    
+
     try:
-        with path.open("rb") as f:
-            for line in f:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
+            for raw_line in f:
+                if _should_skip_record(raw_line):
+                    continue
                 try:
-                    rec = json.loads(line)
+                    rec = json.loads(raw_line)
                 except (json.JSONDecodeError, ValueError):
                     continue
                 if not isinstance(rec, dict):
                     continue
-                # Claude Code format: outer record has 'message' but not type='message'
-                if rec.get("type") != "message":
+                # Claude Code assistant records: outer type is "assistant",
+                # actual message content lives in rec["message"]["content"].
+                if rec.get("type") == "assistant":
                     msg = rec.get("message")
                     if isinstance(msg, dict):
                         content = msg.get("content")
@@ -257,8 +270,8 @@ def _scan_session_for_ssh_loops(path: Path) -> list[LoopFinding]:
                             for block in content:
                                 if isinstance(block, dict):
                                     _process_ssh_block(block, ssh_counts)
-                else:
-                    # pi format: record itself is a message
+                # pi format: record itself is a message with role="assistant"
+                elif rec.get("type") == "message":
                     inner = rec.get("message", {})
                     if isinstance(inner, dict) and inner.get("role") == "assistant":
                         content = inner.get("content", [])
@@ -268,7 +281,7 @@ def _scan_session_for_ssh_loops(path: Path) -> list[LoopFinding]:
                                     _process_ssh_block(block, ssh_counts)
     except OSError:
         return []
-    
+
     host = "claude-code" if "/.claude/projects/" in str(path) else "pi"
     for target, count in ssh_counts.items():
         if count >= 10:
@@ -330,7 +343,7 @@ def _scan_session_for_loops(path: Path) -> list[LoopFinding]:
     file_edit_targets: Counter[str] = Counter()  # file_path + normalized edit signature
     seen_files: set[str] = set()
     try:
-        with path.open("rb") as f:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
             for line in f:
                 try:
                     rec = json.loads(line)
@@ -338,20 +351,21 @@ def _scan_session_for_loops(path: Path) -> list[LoopFinding]:
                     continue
                 if not isinstance(rec, dict):
                     continue
-                # --- Claude Code format: outer record has 'message' ---
-                msg = rec.get("message")
-                if isinstance(msg, dict):
-                    content = msg.get("content")
-                    if isinstance(content, list):
-                        for block in content:
-                            if isinstance(block, dict):
-                                _process_tool_block(
-                                    block, path, tool_cmd_counts,
-                                    tool_sig_counts, file_edit_targets,
-                                    seen_files,
-                                )
+                # --- Claude Code format: outer record has 'message' under type="assistant" ---
+                if rec.get("type") == "assistant":
+                    msg = rec.get("message")
+                    if isinstance(msg, dict):
+                        content = msg.get("content")
+                        if isinstance(content, list):
+                            for block in content:
+                                if isinstance(block, dict):
+                                    _process_tool_block(
+                                        block, path, tool_cmd_counts,
+                                        tool_sig_counts, file_edit_targets,
+                                        seen_files,
+                                    )
                 # --- pi format: record itself is a message ---
-                if rec.get("type") == "message":
+                elif rec.get("type") == "message":
                     inner = rec.get("message", {})
                     if isinstance(inner, dict) and inner.get("role") == "assistant":
                         content = inner.get("content", [])
@@ -447,10 +461,12 @@ def _collect_called_tool_names(sessions: list[Path]) -> set[str]:
     called: set[str] = set()
     for path in sessions:
         try:
-            with path.open("rb") as f:
-                for line in f:
+            with path.open("r", encoding="utf-8", errors="replace") as f:
+                for raw_line in f:
+                    if _should_skip_record(raw_line):
+                        continue
                     try:
-                        rec = json.loads(line)
+                        rec = json.loads(raw_line)
                     except (json.JSONDecodeError, ValueError):
                         continue
                     if not isinstance(rec, dict):
