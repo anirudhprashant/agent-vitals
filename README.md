@@ -35,6 +35,26 @@ That's it. 30 seconds, no daemon, no cloud, no accounts.
 
 After install, restart your agent host so it picks up the new MCP server. Then the next time it runs, it'll call `vitals_summary` before risky operations — automatically.
 
+
+---
+
+## Features
+
+- **Shadow & stale detection** — cron, systemd, MCP, skills. Shows everything; filters to broken references only.
+- **Burnout tracking** — per-agent completion rates, trends, stuck-session heuristics.
+- **Doom-loop detection** — exact + soft loops in Bash and Edit. Excludes polling; compares edits by content.
+- **Unused-tool finder** — per-server + per-tool usage. GitHub-measured 8–12KB overhead per unused tool, per turn.
+- **Token cost + Effective Tokens** — model-aware pricing, ET metric, downgrade suggestions.
+- **SSH polling detector** — finds repeated SSH commands to the same host.
+- **Overlap detection** — duplicate/similar tool names across MCP servers.
+- **Session compaction** — keep last N events, backup first, dry-run preview.
+- **Coaching** — generates optimized system prompts from your actual session data.
+- **Pre-action hooks** — PATH wrappers around `crontab`/`systemctl` that gate mutations until vitals is fresh.
+- **Local-only, read-only, no daemon, no cloud, no accounts.**
+
+---
+
+ ## What your agent sees
 ---
 
 ## What your agent sees
