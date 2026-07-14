@@ -17,16 +17,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts
-      - run: npm install -g pyright
       - run: pip install uv
       - run: uv venv .venv
-      - run: .venv/bin/python -m pip install -e .
-      - run: .venv/bin/python -m unittest discover tests/ -v
-      - run: .venv/bin/python -m py_compile src/agent_vitals/*.py
-      - run: npx htmlhint docs/index.html || true
+      # `uv venv` seeds no pip, so `python -m pip install` fails here.
+      # pytest, not unittest: most of the suite is parametrized, and
+      # `unittest discover` silently collects none of those cases.
+      - run: uv pip install --python .venv/bin/python -e . pytest pyflakes
+      - run: .venv/bin/python -m pytest -q
+      - run: .venv/bin/python -m pyflakes src/agent_vitals/
+      # Smoke the entry points. A missing import in cli.py passes every
+      # unit test and still breaks `av doctor` for every user.
       - run: .venv/bin/av --version
       - run: .venv/bin/av detect
       - run: .venv/bin/av doctor
+
+  html:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npx --yes htmlhint docs/index.html
