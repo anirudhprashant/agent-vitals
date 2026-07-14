@@ -22,6 +22,7 @@ from rich.console import Console
 
 from agent_vitals import __version__
 from agent_vitals import coach as coach_mod
+from agent_vitals.burnout import burn_all
 from agent_vitals import hooks as hooks_mod
 from agent_vitals import snapshot as snap_mod
 from agent_vitals import trace as trace_mod
