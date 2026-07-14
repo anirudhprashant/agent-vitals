@@ -365,7 +365,7 @@ class TestOverlapDetection(unittest.TestCase):
             "mempalace": {"command": "y"},
         }
         called = {"mcp__firecrawl__search", "mcp__mempalace__search"}
-        findings = eff.find_overlapping_tools(registered=registered)
+        findings = eff.find_overlapping_tools(registered=registered, called=called)
         # Should detect that firecrawl and mempalace both have 'search'
         self.assertTrue(any(f["type"] == "exact" for f in findings))
 
@@ -375,7 +375,7 @@ class TestOverlapDetection(unittest.TestCase):
             "firecrawl": {"command": "y"},
         }
         called = {"mcp__brave-search__web_search", "mcp__firecrawl__search"}
-        findings = eff.find_overlapping_tools(registered=registered)
+        findings = eff.find_overlapping_tools(registered=registered, called=called)
         self.assertTrue(any(f["type"] == "similar" for f in findings))
 
 

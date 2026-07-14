@@ -628,28 +628,35 @@ MODEL_MULTIPLIER: dict[str, float] = {
 # ---------- MCP overlap detection ----------
 
 
-def find_overlapping_tools(registered: dict[str, dict[str, str]] | None = None) -> list[dict]:
+def find_overlapping_tools(
+    registered: dict[str, dict[str, str]] | None = None,
+    called: set[str] | None = None,
+) -> list[dict]:
     """Find MCP servers with potentially overlapping tool names.
-    
+
     Detects servers that have tools with similar names, suggesting
     possible redundancy or overlap in functionality.
+
+    `called` is the set of tool names observed in any session. If None,
+    scans session files — mirrors find_unused_tools, and lets callers
+    (and tests) supply their own observations instead of reading $HOME.
     """
     from agent_vitals.scanners import scan_all
-    
+
     if registered is None:
         records = scan_all()
         registered = {}
         for r in records:
             if r.source == "mcp":
                 registered[r.name] = r.target
-    
+
     # Collect all tool names per server
     server_tools: dict[str, set[str]] = {}
     for server_name in registered:
         server_tools[server_name] = set()
-    
-    # Also scan sessions for actually used tool names
-    called = _collect_called_tool_names(_all_session_files())
+
+    if called is None:
+        called = _collect_called_tool_names(_all_session_files())
     for name in called:
         parsed = _parse_mcp_tool_name(name)
         if parsed is None:
