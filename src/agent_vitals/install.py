@@ -16,20 +16,10 @@ Components offered:
 
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Callable
 
-from agent_vitals.primer import (
-    HOST_PATHS,
-    AgentHost,
-    MCP_ARGS,
-    MCP_COMMAND,
-    MCP_SERVER_NAME,
-    detect_hosts,
-    init_all,
-)
+from agent_vitals.primer import detect_hosts, init_all
 from agent_vitals import hooks as hooks_mod
 from agent_vitals import snapshot as snap_mod
 
@@ -236,7 +226,6 @@ def run_install(
         # Run the existing init_all with the right subset
         # For simplicity, just run init_all on every host — the primer
         # functions are idempotent.
-        from agent_vitals.primer import init_all
         per_host_actions = init_all()
         # Filter to only selected hosts
         per_host_actions = [(h, a) for h, a in per_host_actions if h.name in result.hosts_wired]
@@ -272,7 +261,7 @@ def run_install(
                     result.shell_rc_updated = True
                 else:
                     printer(f"  shell rc: skipped — {msg}")
-                    printer(f"  manually add to your shell rc:")
+                    printer("  manually add to your shell rc:")
                     printer(hooks_mod.shell_path_snippet().rstrip())
         else:
             printer("  hooks: skipped (you can run `av hooks install` later)")

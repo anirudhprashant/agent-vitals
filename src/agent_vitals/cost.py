@@ -9,9 +9,8 @@ soft and report what we can.
 from __future__ import annotations
 
 import json
-import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
@@ -321,8 +320,6 @@ def scan_all_sessions(
     """Scan session files and return a nested dict:
        {host: {project: TokenBucket}}.
     """
-    from agent_vitals.sessions import SESSION_ROOTS, _scan_jsonl  # avoid circular
-
     if sessions is None:
         sessions = []
         if include_claude:
@@ -417,7 +414,7 @@ def render_cost_report(
     """Plain-text cost report with ET (Effective Tokens) metric."""
     if not by_host_project:
         return "cost: no token-usage data found in scanned sessions\n"
-    lines = [f"cost: token usage by host / project (last scan; pricing by observed model)\n"]
+    lines = ["cost: token usage by host / project (last scan; pricing by observed model)\n"]
     for host, by_proj in sorted(by_host_project.items()):
         lines.append(f"\n  [{host}]")
         for proj, bucket in sorted(by_proj.items()):
@@ -432,8 +429,8 @@ def render_cost_report(
     grand_et = total_effective_tokens(by_host_project)
     lines.append(f"\n  total: {grand_total:,} tokens, ~${grand_cost:.2f}")
     lines.append(f"  effective tokens (ET): {grand_et:,.0f}")
-    lines.append(f"  (pricing uses observed model when available; ET uses GitHub's")
-    lines.append(f"   formula: m * (1.0*I + 0.1*C + 1.0*W + 4.0*O))")
+    lines.append("  (pricing uses observed model when available; ET uses GitHub's")
+    lines.append("   formula: m * (1.0*I + 0.1*C + 1.0*W + 4.0*O))")
     return "\n".join(lines) + "\n"
 
 

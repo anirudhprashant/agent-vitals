@@ -12,10 +12,9 @@ Run `av --help` to see everything.
 
 from __future__ import annotations
 
-import sys
 import json
-import gzip
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
@@ -36,8 +35,8 @@ from agent_vitals.efficiency import (
     render_overlap_report,
 )
 from agent_vitals.drift import detect_all_drift, render_drift_report
-from agent_vitals.install import COMPONENT_DESCRIPTIONS, run_install
-from agent_vitals.primer import init_all, list_hosts
+from agent_vitals.install import run_install
+from agent_vitals.primer import list_hosts
 from agent_vitals.render import (
     health_summary,
     render_burnout,
@@ -52,7 +51,11 @@ from agent_vitals.sessions import (
     render_sessions_table,
 )
 from agent_vitals.scanners import scan_all
-from agent_vitals.stamp import describe_age, read_age, touch
+from agent_vitals.stamp import touch
+
+if TYPE_CHECKING:
+    from agent_vitals.cost import TokenBucket, ToolTokenUsage
+    from agent_vitals.sessions import SessionInfo
 
 
 app = typer.Typer(
@@ -103,7 +106,6 @@ def _compaction_suggestions(sessions: list[SessionInfo]) -> list[str]:
     suggestions = []
     for s in sessions:
         if s.size_bytes > 10 * 1024 * 1024:  # > 10MB
-            savings_mb = s.size_bytes / (1024 * 1024)
             suggestions.append(
                 f"{s.path.name}: {s.size_bytes / (1024 * 1024):.1f} MiB — consider compacting or archiving"
             )
@@ -615,7 +617,7 @@ def compact(
         console.print(f"\n[dim]Dry run: ~{total_savings / 1024:.1f}K total savings across {len(found)} files. Use --no-dry-run to apply.[/dim]")
     else:
         console.print(f"\n[green]✓[/green] Total saved: {total_savings / 1024:.1f}K across {len(found)} files")
-        console.print(f"  Backups saved as .jsonl.bak — delete when satisfied")
+        console.print("  Backups saved as .jsonl.bak — delete when satisfied")
 
 
 @app.command()
@@ -876,7 +878,7 @@ def hooks_install(
             console.print("[green]\u2713 shell rc updated.[/green] open a new terminal to apply.")
         else:
             console.print(f"[dim]{msg}[/dim]")
-    console.print(f"\n[dim]snippet to add to your shell rc manually:[/dim]")
+    console.print("\n[dim]snippet to add to your shell rc manually:[/dim]")
     console.print(hooks_mod.shell_path_snippet().rstrip())
 
 

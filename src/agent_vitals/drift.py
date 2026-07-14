@@ -14,9 +14,8 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 from agent_vitals.primer import HOST_PATHS, detect_hosts
 

@@ -16,7 +16,7 @@ import time
 from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Iterator
+from typing import Iterator
 from agent_vitals.sessions import discover_sessions
 
 # ---------- normalized model ----------
@@ -65,7 +65,6 @@ def _parse_claude_event(line: str) -> list[TraceEvent]:
     ts = _parse_ts(ev.get("timestamp"))
     parent = ev.get("parentUuid")
     uuid = ev.get("uuid")
-    session_id = ev.get("sessionId")
 
     # skip sidechain events
     if ev.get("isSidechain"):

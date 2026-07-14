@@ -14,6 +14,7 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Iterable
 
 # Candidate session roots. First one that exists wins per session.
 SESSION_ROOTS: list[tuple[str, Path]] = [

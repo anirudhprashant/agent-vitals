@@ -444,7 +444,6 @@ def auto_add_to_shell_rc(force: bool = False) -> tuple[bool, str]:
                 continue
             if marker in text and force:
                 # Remove old block, then append new
-                import re
                 text = re.sub(
                     re.escape(marker) + r".*?" + re.escape(end_marker) + r"\n",
                     "",

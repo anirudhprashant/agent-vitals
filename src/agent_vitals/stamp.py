@@ -87,7 +87,7 @@ def should_gate(window: int | None = None) -> tuple[bool, str]:
     age = read_age()
     win = window if window is not None else window_seconds()
     if age is None:
-        return True, f"no vitals call on record — run any vitals tool first (e.g. `av doctor`)"
+        return True, "no vitals call on record — run any vitals tool first (e.g. `av doctor`)"
     if age > win:
         return True, (
             f"vitals stamp is {describe_age(age)} old — exceeds {win}s window. "

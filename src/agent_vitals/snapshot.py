@@ -12,7 +12,6 @@ the tarball) — we don't auto-write back to live configs.
 
 from __future__ import annotations
 
-import io
 import os
 import tarfile
 import time
