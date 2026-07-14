@@ -421,13 +421,10 @@
 
   <section class="hero">
     <div class="wrap hero-inner">
-      <span class="overline">
-        <span class="badge"><span class="dot"></span> v0.6.0</span>
-        <span class="badge">GPL v3</span>
-        <span class="badge">~4900 LOC</span>
-        <span class="badge">220 tests</span>
-      </span>
-      <h1>Make small models perform like <em>Opus/Fable</em>.</h1>
+      <span class="badge"><span class="dot"></span> v0.7.0</span>
+      <span class="badge">GPL v3</span>
+      <span class="badge">~6000 LOC</span>
+      <span class="badge">275 tests</span>
       <p class="lede">
         vitals reads your actual session data, finds the patterns that make big models effective,
         and turns them into optimized prompts, playbooks, and checks you can run locally.
@@ -437,15 +434,12 @@
         <button class="copy-btn" onclick="copyInstall(this)">copy</button>
       </div>
       <div class="meta-row">
-        <span><span class="dot"></span> 5 MCP tools</span>
-        <span><span class="dot"></span> 14 CLI commands</span>
-        <span><span class="dot"></span> 3 runtime deps</span>
+        <span><span class="dot"></span> 13 MCP tools</span>
+        <span><span class="dot"></span> 23 CLI commands</span>
+        <span><span class="dot"></span> 7 modules</span>
         <span><span class="dot"></span> local-first</span>
         <span><span class="dot"></span> no daemon</span>
       </div>
-    </div>
-  </section>
-
   <section id="features">
     <div class="wrap">
       <div class="section-head fade">
@@ -482,6 +476,13 @@
           </div>
           <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">PATH wrappers around <code>crontab</code> and <code>systemctl --user</code> that refuse mutations when vitals is stale. Reads are never blocked. Bypass with <code>VITALS_BYPASS=1</code> for emergencies.</p>
         </div>
+        <div class="example fade">
+          <div class="example-header">
+            <span class="example-title">Trace replay + diff</span>
+            <span class="example-tag">v0.7.0</span>
+          </div>
+          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Recorded session forensics for Claude Code and pi. <code>av trace replay</code> walks any session step-by-step without exposing prompt or tool payloads. <code>av trace diff</code> finds the exact step where two sessions diverged — tool name, error status, and timing. No instrumentation required; works on existing JSONL logs.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -500,9 +501,9 @@
           <div class="stat-foot">vitals_summary · shadow_list · shadow_stale · burnout_summary · burnout_stuck_sessions</div>
         </div>
         <div class="stat">
-          <div class="stat-num">14</div>
+          <div class="stat-num">18</div>
           <div class="stat-label">CLI commands for you, the operator</div>
-          <div class="stat-foot">install · doctor · detect · mcp · shadow · burnout · drift · cost · tokens · loops · ssh · unused · overlap · coach · sessions · compact · snapshot · hooks</div>
+          <div class="stat-foot">install · doctor · detect · mcp · shadow · burnout · drift · cost · tokens · loops · ssh · unused · overlap · coach · sessions · compact · snapshot · hooks · trace</div>
         </div>
         <div class="stat">
           <div class="stat-num">~5–10KB</div>
@@ -669,10 +670,9 @@ the exact line, then answer.
     <div class="wrap">
       <div class="section-head fade">
         <span class="label">The primitives</span>
-        <h2>5 MCP tools · 14 CLI commands · ~4900 lines of Python.</h2>
+        <h2>5 MCP tools · 23 CLI commands · ~6000 lines of Python.</h2>
         <p>Each tool is local-only, read-only, and safe to call repeatedly. None of them modify state.</p>
         <p><strong>For small models:</strong> the efficiency suite extracts proven tool sequences, detects failure patterns, and generates optimized system prompts that make your current model perform like a much larger one.</p>
-      </div>
       <div class="tools">
         <div class="tool fade">
           <h3>vitals_summary()</h3>
@@ -776,6 +776,12 @@ the exact line, then answer.
           <p>Analyzes your actual session data to generate optimized system prompt fragments, tool-use playbooks, and recovery strategies. This is what makes smaller models dramatically more effective — it gives them opus-level operational playbooks extracted from your real usage patterns. Detects proven tool sequences, failure patterns, and generates model-specific tips. Use <code>--harness</code> to output a complete ready-to-use system prompt.</p>
           <div class="when"><strong>When</strong> You want to make your current model smarter without changing it.</div>
         </div>
+        <div class="tool fade">
+          <h3>av trace</h3>
+          <div class="ret">→ recorded session forensics + agent coaching</div>
+          <p>Replay, diff, filter, and profile agent sessions from existing JSONL logs. <code>av trace replay</code> walks a session step-by-step. <code>av trace diff</code> finds the exact divergence point. <code>av trace profile</code> shows per-tool error rates and durations. <code>av trace suggest</code> generates actionable improvements. <code>av trace watch</code> tails a live session. No payloads, no secrets, no instrumentation required.</p>
+          <div class="when"><strong>When</strong> Agent failed and you need to know why. Or you want to compare two runs. Or you want to make your agent faster.</div>
+        </div>
       </div>
     </div>
   </section>
@@ -806,10 +812,8 @@ the exact line, then answer.
         <div class="arrow-col">→</div>
         <div class="node-wrap">
           <div class="node">
-            <div class="node-num">3</div>
-            <h4>Optimize</h4>
-            <p>Run <code>av cost</code>, <code>av loops</code>, <code>av coach</code> to extract patterns and shrink the model's workload.</p>
-          </div>
+            <h4>Optimize + debug</h4>
+            <p>Run <code>av cost</code>, <code>av loops</code>, <code>av coach</code>, <code>av trace profile</code> to extract patterns and shrink the model's workload. When something breaks, <code>av trace diff</code> finds the exact divergence point between two runs. <code>av trace suggest</code> tells you exactly what to fix.</p>
         </div>
       </div>
       <div class="examples fade" style="margin-top:28px;">
@@ -872,8 +876,17 @@ av ssh
 av overlap
 av compact --dry-run
 av coach
-av coach --harness</pre>
-        </div>
+av coach --harness
+av trace list
+av trace summary &lt;session&gt;
+av trace replay &lt;session&gt;
+av trace diff &lt;a&gt; &lt;b&gt;
+av trace errors &lt;session&gt;
+av trace profile &lt;session&gt;
+av trace grep &lt;session&gt; &lt;pattern&gt;
+av trace export &lt;session&gt;
+av trace suggest &lt;session&gt;
+av trace watch &lt;session&gt;</pre>
       </div>
       <div class="cta-strip fade">
         <div class="cta-strip-inner">
@@ -887,12 +900,9 @@ av coach --harness</pre>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
   <footer>
     <div class="wrap footer-inner">
-      <span>GPL v3. ~4900 LOC · 220 tests. No daemon, no cloud, no accounts.</span>
+      <span>GPL v3. ~6000 LOC · 275 tests · 23 CLI commands. No daemon, no cloud, no accounts.</span>
       <span>
         <a href="https://github.com/anirudhprashant/agent-vitals">GitHub</a> ·
         <a href="https://github.com/anirudhprashant/agent-vitals/releases">Releases</a> ·

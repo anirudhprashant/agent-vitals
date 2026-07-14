@@ -1,6 +1,6 @@
 [project]
 name = "agent-vitals"
-version = "0.6.0"
+version = "0.7.0"
 description = "Solo-dev observability for AI agent stacks: shadow (what's running on your behalf) + burnout (how well it's running)."
 readme = "README.md"
 license = { file = "LICENSE" }

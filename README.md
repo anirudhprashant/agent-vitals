@@ -11,11 +11,11 @@ Give your AI agent a memory of its own infrastructure.
 </p>
 
 <p>
-  <code style="color:#00d992">5 MCP tools · 14 CLI commands</code>
+  <code style="color:#00d992">13 MCP tools · 23 CLI commands</code>
   &nbsp;·&nbsp;
   <code style="color:#b8b3b0">wires pi · Claude Code · Cursor · OpenCode · Codex CLI</code>
   &nbsp;·&nbsp;
-  <code style="color:#b8b3b0">~4000 LOC · 220 tests · GPL v3 · no daemon · no cloud</code>
+  <code style="color:#b8b3b0">~6000 LOC · 275 tests · GPL v3 · no daemon · no cloud</code>
 </p>
 
 <p>
@@ -38,8 +38,6 @@ After install, restart your agent host so it picks up the new MCP server. Then t
 
 ---
 
-## Features
-
 - **Shadow & stale detection** — cron, systemd, MCP, skills. Shows everything; filters to broken references only.
 - **Burnout tracking** — per-agent completion rates, trends, stuck-session heuristics.
 - **Doom-loop detection** — exact + soft loops in Bash and Edit. Excludes polling; compares edits by content.
@@ -49,8 +47,8 @@ After install, restart your agent host so it picks up the new MCP server. Then t
 - **Overlap detection** — duplicate/similar tool names across MCP servers.
 - **Session compaction** — keep last N events, backup first, dry-run preview.
 - **Coaching** — generates optimized system prompts from your actual session data.
+- **Trace suite** — recorded session forensics for Claude Code and pi. `av trace list/summary/replay/diff/errors/profile/grep/export/watch/suggest`. No payloads, no secrets.
 - **Pre-action hooks** — PATH wrappers around `crontab`/`systemctl` that gate mutations until vitals is fresh.
-- **Local-only, read-only, no daemon, no cloud, no accounts.**
 
 ---
 
@@ -266,7 +264,6 @@ All tools are **local-only, read-only, safe to call repeatedly**. None of them m
 ## The trigger table
 
 The table `av install` installs into your priming skill — so the agent knows when to reach for each tool **without you asking**:
-
 | Trigger | Tool |
 |---|---|
 | Starting any non-trivial task | `vitals_summary` |
@@ -277,9 +274,12 @@ The table `av install` installs into your priming skill — so the agent knows w
 | About to claim "all cron is fine" | `shadow_stale` (verify first) |
 | About to recommend an MCP install | `shadow_list` (check duplicates) |
 | User asks "what's broken?" | `vitals_summary` → `shadow_stale` + `burnout_stuck_sessions` |
-
-> [!WARNING]
-> **Honesty note.** Priming isn't enforcement. The SKILL.md puts these triggers in front of the agent's face, but the agent still has to *remember* to follow them. In practice this catches ~30–40% of cases — better than nothing, not a magic bullet.
+| Agent failed, need to debug why | `av trace diff <last-good> <current>` |
+| User asks "what did the agent just do?" | `av trace replay <session>` |
+| Agent session has errors | `av trace errors <session>` |
+| Need tool performance breakdown | `av trace profile <session>` |
+| Looking for specific tool usage | `av trace grep <session> <pattern>` |
+| Agent gave bad advice, need to know why | `av trace suggest <session>` |
 >
 > **v0.3.0 changes this.** `av hooks install` deploys PATH-level wrappers around `crontab` and `systemctl --user` that *refuse* any mutation when the vitals stamp is older than 60 seconds. Read operations (`crontab -l`, `systemctl status`, etc.) are never gated. See [Pre-action hooks](#pre-action-hooks-v030) below.
 
@@ -301,8 +301,9 @@ The table `av install` installs into your priming skill — so the agent knows w
 
 ## What it scans
 
+
 | Source | Path | What it finds |
-|---|---|---|
+|---|---|
 | Crontab | `crontab -l` | flags targets that no longer exist |
 | systemd user timers | `systemctl --user list-timers` | systemd-v255 quirk-resistant (computes `next - now` itself) |
 | MCP configs | `~/.pi/agent/mcp.json`, `~/.claude/.mcp.json`, `~/.cursor/mcp.json`, `~/.config/opencode/mcp.json` | one entry per host registration |
@@ -310,11 +311,8 @@ The table `av install` installs into your priming skill — so the agent knows w
 | Skill frontmatter | `~/.claude/skills/*/SKILL.md` | surfaces skills with `schedule:` / `cron:` / `interval:` triggers |
 | pi subagent history | `~/.pi/agent/run-history.jsonl` | per-agent completion + trend |
 | Claude Code sessions | `~/.claude/projects/*/*.jsonl` | session counts + stuck-loop heuristic |
-
----
-
-## CLI (humans only — for verification)
-
+| **pi sessions** | `~/.pi/agent/sessions/*.jsonl` | parsed by trace module for replay/diff |
+| **Claude sessions** | `~/.claude/projects/*/*.jsonl` | parsed by trace module for replay/diff |
 ```bash
 av                # one-shot health summary
 av doctor         # summary + actionable recommendations
@@ -338,39 +336,36 @@ av overlap        # detect overlapping MCP tools
 av compact        # compact large session files
 av compact --dry-run  # preview compaction without changes
 av coach          # generate optimized system prompts from session data
-```
 
----
-
-## Stack
-
-```
-Python 3.11+    ──  type hints, tomllib, asyncio
+# Trace (v0.7.0)
+av trace list                  # list sessions with event counts and source type
+av trace summary <session>     # turns, tools, errors, wall duration
+av trace replay <session>      # step-by-step replay (no payloads)
+av trace diff <a> <b>          # structural diff between two sessions
+av trace errors <session>      # show only error events
+av trace profile <session>     # per-tool breakdown: calls, errors, avg duration
+av trace grep <session> <pat>  # filter events by tool name or type
+av trace export <session>      # export normalized events to JSON
+av trace suggest <session>     # actionable suggestions from session data
+av trace watch <session>       # tail a session JSONL live (Ctrl-C to stop)
 uv              ──  one-tool install / build / publish
 typer           ──  CLI
 rich            ──  terminal rendering
 pyyaml          ──  SKILL.md frontmatter parsing
 mcp (FastMCP)   ──  MCP server, stdio transport
-pytest          ──  220 tests across 5 modules
+pytest          ──  275 tests across 7 modules
 ```
 
-~4000 lines of Python + 220 tests + priming SKILL.md. GPL v3 licensed.
+~6000 lines of Python + 275 tests + priming SKILL.md. GPL v3 licensed.
 
 ---
-
 ## Roadmap
 
 - [x] **v0.1.0** — `shadow` + `burnout` CLI commands
 - [x] **v0.2.0** — MCP server + `av install` for 5 host types
-- [x] **v0.2.1** — fix false-positive duplicate detection across hosts
-- [x] **v0.3.0** — <span style="color:#00d992">**pre-action hooks**</span> for crontab + systemctl (priming → enforcement, with bypass)
-- [x] **v0.4.0** — <span style="color:#00d992">**the full suite**</span>: interactive `av install`, `av drift`, `av cost`, `av sessions`, `av snapshot`
-- [x] **v0.6.0** — <span style="color:#00d992">**efficiency suite**</span>: `av loops` (doom-loop detection), `av unused` (registered-but-unused MCP tool detector), `av cost` with ET metric, `av tokens`, `av ssh`, `av overlap`, `av compact`, `av coach`. 220 tests total.
-- [ ] **v0.7.0** — expose drift / cost / sessions / snapshot / loops / unused as MCP tools (currently CLI-only)
+- [x] **v0.7.0** — <span style="color:#00d992">**trace suite**</span>: `av trace list/summary/replay/diff/errors/profile/grep/export/watch/suggest`. Content-agnostic adapters for Claude Code and pi JSONLs. MCP tools exposed.
 - [ ] **v0.7.0** — `shadow live` (running agent processes, ps-tree view)
 - [ ] **v0.8.0** — cross-session "agent déjà vu" detector (you researched this codebase 3 weeks ago)
-
----
 
 ## Contributing
 

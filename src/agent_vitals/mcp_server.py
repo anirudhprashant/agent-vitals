@@ -12,12 +12,14 @@ v0.3.0 pre-action hooks.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
 from agent_vitals.burnout import burn_all
 from agent_vitals.scanners import scan_all
 from agent_vitals.stamp import touch
+from agent_vitals import trace as trace_mod
 
 mcp = FastMCP(
     name="vitals",
@@ -185,6 +187,135 @@ def burnout_stuck_sessions(days: int = 7, limit: int = 10) -> str:
     _touch()
     _, cc = burn_all(days=days)
     return _j(cc.get("stuck_sessions", [])[:limit])
+
+
+# ---------- trace (v0.7.0) ----------
+
+
+@mcp.tool(title="trace list")
+def trace_list() -> str:
+    """List discoverable agent sessions with source type and event counts."""
+    rows = trace_mod.list_sessions()
+    if not rows:
+        return "trace: no sessions found\n"
+    lines = ["path | source | events", "--- | --- | ---"]
+    for path, source, count in rows[:50]:
+        lines.append(f"{path} | {source} | {count}")
+    return "\n".join(lines) + "\n"
+
+
+@mcp.tool(title="trace summary")
+def trace_summary(session: str) -> str:
+    """One-shot trace summary for a session JSONL: turns, tools, errors, wall duration."""
+    p = Path(session)
+    if not p.exists():
+        return f"trace: file not found: {session}\n"
+    events = trace_mod.trace_events(p)
+    if not events:
+        return "trace: no parseable events\n"
+    stats = trace_mod.summary(events)
+    lines = [
+        f"trace summary · {p.name}",
+        f"  events : {stats['events']}",
+        f"  turns  : {stats['turns']}",
+        f"  tools  : {stats['tools']}",
+        f"  results: {stats['results']}",
+        f"  errors : {stats['errors']}",
+        f"  wall   : {trace_mod._format_duration(stats['wall_ms'])}",
+    ]
+    if stats["tools"]:
+        lines.append(f"  avg tool: {trace_mod._format_duration(stats['avg_tool_ms'])}")
+    return "\n".join(lines) + "\n"
+
+
+@mcp.tool(title="trace diff")
+def trace_diff(session_a: str, session_b: str) -> str:
+    """Structural diff between two session traces (no payloads)."""
+    pa = Path(session_a)
+    pb = Path(session_b)
+    if not pa.exists():
+        return f"trace: file not found: {session_a}\n"
+    if not pb.exists():
+        return f"trace: file not found: {session_b}\n"
+    events_a = trace_mod.trace_events(pa)
+    events_b = trace_mod.trace_events(pb)
+    return trace_mod.diff(events_a, events_b)
+
+
+@mcp.tool(title="trace errors")
+def trace_errors(session: str) -> str:
+    """Show only error events from a session trace."""
+    p = Path(session)
+    if not p.exists():
+        return f"trace: file not found: {session}\n"
+    events = trace_mod.trace_events(p)
+    errs = trace_mod.errors(events)
+    if not errs:
+        return "trace: no errors found\n"
+    return trace_mod.replay(errs)
+
+
+@mcp.tool(title="trace profile")
+def trace_profile_mcp(session: str) -> str:
+    """Per-tool breakdown: call count, error rate, avg duration."""
+    p = Path(session)
+    if not p.exists():
+        return f"trace: file not found: {session}\n"
+    events = trace_mod.trace_events(p)
+    prof = trace_mod.profile(events)
+    tools = prof.get("tools", [])
+    if not tools:
+        return "trace: no tool calls found\n"
+    lines = [f"trace profile · {p.name} · {len(tools)} tools"]
+    header = f"  {'tool':<20} {'calls':>6} {'errors':>7} {'err%':>6} {'avg':>8}"
+    lines.append(header)
+    lines.append("  " + "-" * len(header.strip()))
+    for row in tools:
+        err_pct = f"{row['error_rate'] * 100:.0f}%"
+        avg = trace_mod._format_duration(row["avg_ms"])
+        lines.append(
+            f"  {row['tool']:<20} {row['calls']:>6} {row['errors']:>7} {err_pct:>6} {avg:>8}"
+        )
+    return "\n".join(lines) + "\n"
+
+
+@mcp.tool(title="trace grep")
+def trace_grep(session: str, pattern: str) -> str:
+    """Filter events by tool name or event type (case-insensitive)."""
+    p = Path(session)
+    if not p.exists():
+        return f"trace: file not found: {session}\n"
+    events = trace_mod.trace_events(p)
+    matches = trace_mod.grep(events, pattern)
+    if not matches:
+        return f"trace: no matches for '{pattern}'\n"
+    return trace_mod.replay(matches)
+
+
+@mcp.tool(title="trace export")
+def trace_export(session: str, output: str) -> str:
+    """Export normalized trace events to JSON file."""
+    p = Path(session)
+    out = Path(output)
+    if not p.exists():
+        return f"trace: file not found: {session}\n"
+    events = trace_mod.trace_events(p)
+    trace_mod.export_json(events, out)
+    return f"trace: exported {len(events)} events to {out}\n"
+
+
+@mcp.tool(title="trace suggest")
+def trace_suggest_mcp(session: str) -> str:
+    """Actionable suggestions based on session trace data."""
+    p = Path(session)
+    if not p.exists():
+        return f"trace: file not found: {session}\n"
+    events = trace_mod.trace_events(p)
+    suggestions = trace_mod.suggest(events)
+    lines = [f"trace suggestions · {p.name}"]
+    for i, s in enumerate(suggestions, 1):
+        lines.append(f"  {i}. {s}")
+    return "\n".join(lines) + "\n"
 
 
 def main() -> None:

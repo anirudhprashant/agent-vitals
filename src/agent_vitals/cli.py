@@ -24,6 +24,7 @@ from agent_vitals import __version__
 from agent_vitals import coach as coach_mod
 from agent_vitals import hooks as hooks_mod
 from agent_vitals import snapshot as snap_mod
+from agent_vitals import trace as trace_mod
 from agent_vitals.cost import render_cost_report, render_tokens_report, scan_all_sessions, scan_tool_tokens
 from agent_vitals.efficiency import (
     find_loops,
@@ -638,7 +639,218 @@ def snapshot(
     console.print(f"  restore: tar -xzf {snap.path} -C /tmp/restore  # then copy files back manually")
 
 
+# ---------- trace (v0.7.0) ----------
+
+
+trace_app = typer.Typer(
+    name="trace",
+    help="Recorded trace replay + divergence diff for agent sessions.",
+    no_args_is_help=True,
+)
+app.add_typer(trace_app, name="trace")
+
+
+@trace_app.command("list")
+def trace_list(
+    limit: int = typer.Option(20, "--limit", "-n", help="Max rows to show."),
+    source: str | None = typer.Option(None, "--source", "-s", help="Filter by source (claude|pi)."),
+) -> None:
+    """List discoverable sessions with source type and line counts."""
+    rows = trace_mod.list_sessions()
+    if source:
+        rows = [(p, s, c) for p, s, c in rows if s == source.lower()]
+    if not rows:
+        console.print(f"trace: no sessions found{' for source ' + source if source else ''}\n")
+        return
+    rows = rows[:limit]
+    lines = ["  path                              source  lines", "  --------------------------------  ------  -----"]
+    for path, src, count in rows:
+        lines.append(f"  {path:<31}  {src:<6}  {count}")
+    console.print("\n".join(lines) + "\n")
+
+
+@trace_app.command("summary")
+def trace_summary(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+) -> None:
+    """One-shot trace summary: turns, tools, errors, wall duration."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    if not events:
+        console.print("trace: no parseable events\n")
+        return
+    stats = trace_mod.summary(events)
+    console.print(f"trace summary · {p.name}\n")
+    console.print(f"  events : {stats['events']}")
+    console.print(f"  turns  : {stats['turns']}")
+    console.print(f"  tools  : {stats['tools']}")
+    console.print(f"  results: {stats['results']}")
+    console.print(f"  errors : {stats['errors']}")
+    console.print(f"  wall   : {trace_mod._format_duration(stats['wall_ms'])}")
+    if stats["tools"]:
+        console.print(f"  avg tool: {trace_mod._format_duration(stats['avg_tool_ms'])}")
+
+
+@trace_app.command("replay")
+def trace_replay(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+    limit: int = typer.Option(200, "--limit", "-n", help="Max events to show."),
+) -> None:
+    """Sequential replay of a session trace (no payloads)."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    shown = events[:limit]
+    console.print(trace_mod.replay(shown).rstrip())
+    if len(events) > limit:
+        console.print(f"\n[dim]... truncated to {limit} events[/dim]")
+
+
+@trace_app.command("diff")
+def trace_diff(
+    session_a: str = typer.Argument(..., help="Path to first session JSONL."),
+    session_b: str = typer.Argument(..., help="Path to second session JSONL."),
+) -> None:
+    """Structural diff between two session traces (no payloads)."""
+    pa = Path(session_a)
+    pb = Path(session_b)
+    if not pa.exists():
+        console.print(f"[red]trace: file not found: {session_a}[/red]")
+        raise typer.Exit(1)
+    if not pb.exists():
+        console.print(f"[red]trace: file not found: {session_b}[/red]")
+        raise typer.Exit(1)
+    events_a = trace_mod.trace_events(pa)
+    events_b = trace_mod.trace_events(pb)
+    result = trace_mod.diff(events_a, events_b)
+    console.print(result.rstrip())
+
+@trace_app.command("errors")
+def trace_errors(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+) -> None:
+    """Show only error events from a session trace."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    errs = trace_mod.errors(events)
+    if not errs:
+        console.print("trace: no errors found\n")
+        return
+    console.print(f"trace errors · {p.name} · {len(errs)} errors\n")
+    console.print(trace_mod.replay(errs).rstrip())
+
+@trace_app.command("profile")
+def trace_profile(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+) -> None:
+    """Per-tool breakdown: call count, error rate, avg duration."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    prof = trace_mod.profile(events)
+    tools = prof.get("tools", [])
+    if not tools:
+        console.print("trace: no tool calls found\n")
+        return
+    console.print(f"trace profile · {p.name} · {len(tools)} tools\n")
+    header = f"  {'tool':<20} {'calls':>6} {'errors':>7} {'err%':>6} {'avg':>8}"
+    console.print(header)
+    console.print("  " + "-" * (len(header.strip())))
+    for row in tools:
+        err_pct = f"{row['error_rate'] * 100:.0f}%"
+        avg = trace_mod._format_duration(row["avg_ms"])
+        console.print(
+            f"  {row['tool']:<20} {row['calls']:>6} {row['errors']:>7} {err_pct:>6} {avg:>8}"
+        )
+
+@trace_app.command("suggest")
+def trace_suggest(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+) -> None:
+    """Actionable suggestions based on session trace data."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    suggestions = trace_mod.suggest(events)
+    console.print(f"trace suggestions · {p.name}\n")
+    for i, s in enumerate(suggestions, 1):
+        console.print(f"  {i}. {s}")
+    console.print()
+
+
+@trace_app.command("grep")
+def trace_grep(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+    pattern: str = typer.Argument(..., help="Substring to match (tool name or event type)."),
+    limit: int = typer.Option(50, "--limit", "-n", help="Max matches to show."),
+) -> None:
+    """Filter events by tool name or event type (case-insensitive)."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    matches = trace_mod.grep(events, pattern)[:limit]
+    if not matches:
+        console.print(f"trace: no matches for '{pattern}'\n")
+        return
+    console.print(trace_mod.replay(matches).rstrip())
+    if len(trace_mod.grep(events, pattern)) > limit:
+        console.print(f"\n[dim]... truncated to {limit} matches[/dim]")
+
+
+@trace_app.command("export")
+def trace_export(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+    output: str = typer.Option("trace.json", "--output", "-o", help="Output JSON path."),
+) -> None:
+    """Export normalized trace events to JSON."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    events = trace_mod.trace_events(p)
+    out = Path(output)
+    trace_mod.export_json(events, out)
+    console.print(f"trace: exported {len(events)} events to {out}\n")
+
+
+@trace_app.command("watch")
+def trace_watch(
+    session: str = typer.Argument(..., help="Path to a session JSONL file."),
+    interval: float = typer.Option(1.0, "--interval", "-i", help="Poll interval in seconds."),
+) -> None:
+    """Tail a session JSONL and print new events as they arrive."""
+    p = Path(session)
+    if not p.exists():
+        console.print(f"[red]trace: file not found: {session}[/red]")
+        raise typer.Exit(1)
+    console.print(f"trace: watching {p} (Ctrl-C to stop)\n")
+    try:
+        for ev in trace_mod.watch(p, poll_interval=interval):
+            marker = "✗" if ev.error else "·"
+            tool = f" [{ev.tool_name}]" if ev.tool_name else ""
+            line = f"  {marker} {ev.event_type}{tool}"
+            console.print(line)
+    except KeyboardInterrupt:
+        console.print("\n[dim]trace: watch stopped[/dim]")
+        raise typer.Exit(0)
+
+
 # ---------- v0.3.0 hooks ----------
+
 
 
 @hooks_app.command("install")
