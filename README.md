@@ -4,18 +4,18 @@ Give your AI agent a memory of its own infrastructure.
 
 <p>
 <a href="https://github.com/anirudhprashant/agent-vitals/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL%20v3-00d992?style=flat-square" alt="License"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.6.0-3d3a39?style=flat-square" alt="Version"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals/releases"><img src="https://img.shields.io/badge/version-v0.7.0-3d3a39?style=flat-square" alt="Version"></a>
 &nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/python-3.11%2B-2fd6a1?style=flat-square" alt="Python"></a>
-&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E4000-8b949e?style=flat-square" alt="LOC"></a>
+&nbsp;<a href="https://github.com/anirudhprashant/agent-vitals"><img src="https://img.shields.io/badge/LOC-%7E6000-8b949e?style=flat-square" alt="LOC"></a>
 &nbsp;<a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-stdio-00d992?style=flat-square" alt="MCP"></a>
 </p>
 
 <p>
-  <code style="color:#00d992">13 MCP tools · 23 CLI commands</code>
+  <code style="color:#00d992">13 MCP tools · 20 CLI commands</code>
   &nbsp;·&nbsp;
   <code style="color:#b8b3b0">wires pi · Claude Code · Cursor · OpenCode · Codex CLI</code>
   &nbsp;·&nbsp;
-  <code style="color:#b8b3b0">~6000 LOC · 275 tests · GPL v3 · no daemon · no cloud</code>
+  <code style="color:#b8b3b0">~6000 LOC · 295 tests · GPL v3 · no daemon · no cloud</code>
 </p>
 
 <p>
@@ -303,7 +303,7 @@ The table `av install` installs into your priming skill — so the agent knows w
 
 
 | Source | Path | What it finds |
-|---|---|
+|---|---|---|
 | Crontab | `crontab -l` | flags targets that no longer exist |
 | systemd user timers | `systemctl --user list-timers` | systemd-v255 quirk-resistant (computes `next - now` itself) |
 | MCP configs | `~/.pi/agent/mcp.json`, `~/.claude/.mcp.json`, `~/.cursor/mcp.json`, `~/.config/opencode/mcp.json` | one entry per host registration |
@@ -321,7 +321,11 @@ av shadow --watch # live refresh every 2s
 av burnout        # completion metrics, last 7 days
 av burnout --days 30
 av detect         # list detected agent hosts
-av install        # wire vitals into every detected host
+av install        # interactive installer — pick components, pick hosts
+av init           # deprecated alias for `av install`
+av drift          # find inconsistencies across hosts (MCP, skills, hooks)
+av sessions       # list session files with age + size
+av snapshot       # tar.gz of agent state (mcp configs, skills, hooks)
 av mcp            # start the MCP server (stdio)
 
 # Efficiency suite (v0.6.0+)
@@ -353,10 +357,10 @@ typer           ──  CLI
 rich            ──  terminal rendering
 pyyaml          ──  SKILL.md frontmatter parsing
 mcp (FastMCP)   ──  MCP server, stdio transport
-pytest          ──  275 tests across 7 modules
+pytest          ──  295 tests across 12 modules
 ```
 
-~6000 lines of Python + 275 tests + priming SKILL.md. GPL v3 licensed.
+~6000 lines of Python + 295 tests + priming SKILL.md. GPL v3 licensed.
 
 ---
 ## Roadmap
@@ -387,5 +391,5 @@ GPL v3. See [`LICENSE`](LICENSE).
 <sub>
 <span style="color:#3d3a39">─────────────────────────────────────────────</span>
 <br/>
-<span style="color:#00d992">vitals v0.6.0</span> <span style="color:#8b949e">·</span> <span style="color:#b8b3b0">2026</span>
+<span style="color:#00d992">vitals v0.7.0</span> <span style="color:#8b949e">·</span> <span style="color:#b8b3b0">2026</span>
 </sub>

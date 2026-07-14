@@ -6,7 +6,7 @@
   <title>vitals — Make small models perform like Opus/Fable</title>
   <meta name="description" content="Local-first small-model performance toolkit. Extracts opus-level operational patterns from session data and turns them into optimized system prompts, tool-use playbooks, and recovery strategies." />
   <meta property="og:title" content="vitals — Small-model performance toolkit" />
-  <meta property="og:description" content="Extracts opus-level operational patterns from session data. 5 MCP tools + 14 CLI commands. Wired into pi, Claude Code, Cursor, OpenCode, Codex CLI." />
+  <meta property="og:description" content="Extracts opus-level operational patterns from session data. 13 MCP tools + 20 CLI commands. Wired into pi, Claude Code, Cursor, OpenCode, Codex CLI." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://github.com/anirudhprashant/agent-vitals" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -403,7 +403,7 @@
       <span class="badge"><span class="dot"></span> v0.7.0</span>
       <span class="badge">GPL v3</span>
       <span class="badge">~6000 LOC</span>
-      <span class="badge">275 tests</span>
+      <span class="badge">295 tests</span>
 
       <span class="overline">solo-dev observability for AI agent stacks</span>
       <h1>Make small models perform <em>like Opus</em>.</h1>
@@ -417,11 +417,14 @@
       </div>
       <div class="meta-row">
         <span><span class="dot"></span> 13 MCP tools</span>
-        <span><span class="dot"></span> 23 CLI commands</span>
-        <span><span class="dot"></span> 7 modules</span>
+        <span><span class="dot"></span> 20 CLI commands</span>
+        <span><span class="dot"></span> 15 modules</span>
         <span><span class="dot"></span> local-first</span>
         <span><span class="dot"></span> no daemon</span>
       </div>
+    </div>
+  </section>
+
   <section id="features">
     <div class="wrap">
       <div class="section-head fade">
@@ -652,9 +655,10 @@ the exact line, then answer.
     <div class="wrap">
       <div class="section-head fade">
         <span class="label">The primitives</span>
-        <h2>5 MCP tools · 23 CLI commands · ~6000 lines of Python.</h2>
+        <h2>13 MCP tools · 20 CLI commands · ~6000 lines of Python.</h2>
         <p>Each tool is local-only, read-only, and safe to call repeatedly. None of them modify state.</p>
         <p><strong>For small models:</strong> the efficiency suite extracts proven tool sequences, detects failure patterns, and generates optimized system prompts that make your current model perform like a much larger one.</p>
+      </div>
       <div class="tools">
         <div class="tool fade">
           <h3>vitals_summary()</h3>
@@ -725,13 +729,13 @@ the exact line, then answer.
         <div class="tool fade">
           <h3>av tokens --suggest</h3>
           <div class="ret">→ optimization suggestions</div>
-          <p>Analyzes token usage patterns and suggests concrete optimizations. Flags dominant tools (>30% of tokens), high-average tools (>100K tokens/call), output-heavy tools, and batching opportunities. Gives you actionable advice, not just data.</p>
+          <p>Analyzes token usage patterns and suggests concrete optimizations. Flags dominant tools (&gt;30% of tokens), high-average tools (&gt;100K tokens/call), output-heavy tools, and batching opportunities. Gives you actionable advice, not just data.</p>
           <div class="when"><strong>When</strong> After running <code>av tokens</code> and wanting next steps.</div>
         </div>
         <div class="tool fade">
           <h3>av ssh</h3>
           <div class="ret">→ SSH polling loop detector</div>
-          <p>Detects repeated SSH commands to the same host — a common token-wasting pattern where an agent polls a remote server instead of using proper async/watch mechanisms. Found 73 SSH polling loops on typical dev boxes. Each finding includes the target host, call count, and remediation advice.</p>
+          <p>Detects repeated SSH commands to the same host — a common token-wasting pattern where an agent polls a remote server instead of using proper async/watch mechanisms. On the box this was built on it flagged 74 polling loops, the worst a single host hit 418 times in one session. Each finding includes the target host, call count, and remediation advice.</p>
           <div class="when"><strong>When</strong> After a session with heavy SSH usage. Or when token bill is unexplained.</div>
         </div>
         <div class="tool fade">
@@ -744,7 +748,7 @@ the exact line, then answer.
           <h3>av compact</h3>
           <div class="ret">→ session compaction tool</div>
           <p>Compacts large session files by keeping only the most recent N events. Creates a .jsonl.bak backup before modifying. Use <code>--dry-run</code> to preview savings. Found 12 sessions eligible for compaction on typical dev boxes, saving ~140MB total. Reduces context bloat and speeds up future scans.</p>
-          <div class="when"><strong>When</strong> Sessions are large (>10MB or >5000 events). Or before archiving old work.</div>
+          <div class="when"><strong>When</strong> Sessions are large (&gt;10MB or &gt;5000 events). Or before archiving old work.</div>
         </div>
         <div class="tool fade">
           <h3>av compact --dry-run</h3>
@@ -882,9 +886,13 @@ av trace watch &lt;session&gt;</pre>
           </div>
         </div>
       </div>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <div class="wrap footer-inner">
-      <span>GPL v3. ~6000 LOC · 275 tests · 23 CLI commands. No daemon, no cloud, no accounts.</span>
+      <span>GPL v3. ~6000 LOC · 295 tests · 20 CLI commands. No daemon, no cloud, no accounts.</span>
       <span>
         <a href="https://github.com/anirudhprashant/agent-vitals">GitHub</a> ·
         <a href="https://github.com/anirudhprashant/agent-vitals/releases">Releases</a> ·
