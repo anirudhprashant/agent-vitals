@@ -67,8 +67,6 @@ When your agent (pi, Claude Code, OpenCode, Cursor, Codex) calls `vitals_summary
 
 That's not a CLI you read. That's a tool your agent calls from inside its own loop — before it does anything risky.
 
-![Terminal](docs/terminal.png)
-
 ---
 
 ## How it works
