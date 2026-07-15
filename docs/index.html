@@ -3,896 +3,311 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>vitals — Make small models perform like Opus/Fable</title>
-  <meta name="description" content="Local-first small-model performance toolkit. Extracts opus-level operational patterns from session data and turns them into optimized system prompts, tool-use playbooks, and recovery strategies." />
-  <meta property="og:title" content="vitals — Small-model performance toolkit" />
-  <meta property="og:description" content="Extracts opus-level operational patterns from session data. 13 MCP tools + 20 CLI commands. Wired into pi, Claude Code, Cursor, OpenCode, Codex CLI." />
+  <title>vitals — Give your AI agent a memory of its own infrastructure</title>
+  <meta name="description" content="Local-first observability for AI agent stacks. Shadow/burnout/doom-loop detection, 13 MCP tools, 20 CLI commands. No daemon, no cloud, no accounts. GPL v3." />
+  <meta property="og:title" content="vitals — Give your AI agent a memory of its own infrastructure" />
+  <meta property="og:description" content="Local-first observability for AI agent stacks. 13 MCP tools + 20 CLI commands. Wired into pi, Claude Code, Cursor, OpenCode, Codex CLI." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://github.com/anirudhprashant/agent-vitals" />
+  <meta property="og:url" content="https://vitals.barestack.org" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #FAF9F5;
-      --bg-2: #F3F1EC;
-      --bg-3: #EDEAE1;
+      --canvas: #FAF9F5;
+      --surface: #F3F1EC;
+      --surface-2: #EDEAE1;
       --line: #E4DECD;
-      --ink: #191C1B;
-      --muted: #68716D;
+      --content: #191C1B;
+      --muted: #5B6460;
       --subtle: #8B8578;
-      --code-bg: #F3F1EC;
-      --code-line: #E4DECD;
       --accent: #C37624;
       --accent-2: #A85E1C;
-      --warn: #fb565b;
+      --forest-dark: #141C11;
+      --forest: #1E2D1A;
+      --cream: #F5F0E8;
+      --warn: #C0392B;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      background: var(--bg);
-      color: var(--ink);
+      background: var(--canvas);
+      color: var(--content);
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       font-size: 16px;
       line-height: 1.55;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
-    a { color: var(--muted); text-decoration: none; transition: color 160ms ease; }
-    a:hover { color: var(--ink); }
-    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    img { max-width: 100%; display: block; }
 
-    /* nav */
+    .serif { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .kicker {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+    }
+    .kicker .dot { width: 6px; height: 6px; border-radius: 1px; background: var(--accent); box-shadow: 0 0 10px rgba(195,118,36,0.55); flex-shrink: 0; }
+    .kicker.on-dark { color: rgba(232,184,109,0.85); }
+    .kicker.on-light { color: var(--accent-2); }
+
+    /* ---------- nav ---------- */
     nav {
+      position: sticky; top: 0; z-index: 50; height: 68px;
+      background: rgba(250,249,245,0.9); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
       border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(20px) saturate(140%);
-      -webkit-backdrop-filter: blur(20px) saturate(140%);
-      position: sticky;
-      top: 0;
-      z-index: 50;
     }
-    .nav-inner { display:flex; align-items:center; justify-content:space-between; height: 64px; }
-    .brand { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0.01em; color: var(--ink); font-size: 18px; font-style: italic; text-decoration:none; }
-    .nav-links { display:flex; align-items:center; gap: 6px; }
-    .nav-links a { font-size: 13.5px; color: var(--muted); letter-spacing: 0.01em; padding: 6px 10px; border-radius: 8px; transition: color 160ms ease, background 160ms ease; }
-    .nav-links a:hover { color: var(--ink); background: var(--bg-2); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { font-size: 19px; font-style: italic; letter-spacing: 0.01em; }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a { font-size: 13.5px; color: var(--muted); padding: 8px 12px; border-radius: 2px; transition: color 160ms ease, background 160ms ease; }
+    .nav-links a:hover { color: var(--content); background: var(--surface); }
     .nav-cta {
-      padding: 8px 14px;
-      border: 1px solid var(--ink);
-      border-radius: 999px;
-      font-size: 13px;
-      color: #fff;
-      background: var(--ink);
-      transition: transform 80ms ease, opacity 160ms ease, box-shadow 200ms ease;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+      padding: 9px 18px; border: 1px solid var(--content); border-radius: 0;
+      font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      color: #fff; background: var(--content); transition: transform 120ms ease, background 160ms ease;
     }
-    .nav-cta:hover { transform: translateY(-1px); opacity: 0.88; box-shadow: 0 4px 12px rgba(20,20,19,0.12); }
+    .nav-cta:hover { background: var(--accent-2); transform: translateY(-1px); }
+    @media (max-width: 760px) { .nav-links { display: none; } }
 
-    /* hero */
-    .hero { padding: 100px 0 80px; border-bottom: 1px solid var(--line); position: relative; background-image: radial-gradient(circle, var(--ink) 0.5px, transparent 0.5px); background-size: 24px 24px; background-position: 0 0; opacity: 0.98; }
+    /* ---------- hero ---------- */
+    .hero {
+      position: relative; overflow: hidden; background: var(--forest-dark); color: #F5F0E8;
+      padding: 88px 0 76px;
+      background-image: radial-gradient(rgba(255,255,255,0.05) 0.5px, transparent 0.5px);
+      background-size: 26px 26px;
+    }
     .hero::before {
-      content: "";
-      position: absolute;
-      top: -40px; right: -120px;
-      width: 520px; height: 520px;
-      background: radial-gradient(circle at center, rgba(195,118,36,0.12) 0%, rgba(195,118,36,0) 70%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
+      content: ""; position: absolute; top: -140px; right: -160px; width: 640px; height: 640px; pointer-events: none;
+      background: radial-gradient(circle at center, rgba(195,118,36,0.22) 0%, rgba(195,118,36,0) 68%);
     }
-    .hero-inner { position: relative; z-index: 1; }
-    .overline {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 12px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--subtle);
-      margin-bottom: 22px;
+    .hero::after {
+      content: ""; position: absolute; bottom: -220px; left: -120px; width: 480px; height: 480px; pointer-events: none;
+      background: radial-gradient(circle at center, rgba(45,61,38,0.55) 0%, rgba(45,61,38,0) 70%);
     }
-    .badge { display:inline-flex; align-items:center; gap:6px; padding: 4px 10px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); }
-    .badge .dot { width:6px; height:6px; border-radius:50%; background: var(--accent); }
-    h1 {
-      font-family: "Instrument Serif", Georgia, serif;
-      font-size: clamp(40px, 4.8vw, 72px);
-      line-height: 1.08;
-      font-weight: 400;
-      letter-spacing: -0.025em;
-      color: var(--ink);
-      max-width: 980px;
+    .hero-inner { position: relative; z-index: 2; max-width: 760px; }
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 66px); line-height: 1.03; letter-spacing: -0.02em; margin-top: 20px;
     }
-    h1 em { font-style: italic; color: var(--muted); }
-    .lede {
-      margin-top: 24px;
-      font-size: 17px;
-      color: var(--muted);
-      max-width: 760px;
-      line-height: 1.6;
-    }
-    .install {
-      margin-top: 32px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .install code {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 13px;
-      color: var(--ink);
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .install code .dollar { color: var(--subtle); }
-    .copy-btn {
-      background: #fff;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 9px 14px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: color 160ms ease, border-color 160ms ease;
-      font-family: "Inter", system-ui, sans-serif;
-    }
-    .copy-btn:hover { color: var(--ink); border-color: var(--ink); }
-    .meta-row { margin-top: 22px; display: flex; gap: 18px; color: var(--subtle); font-size: 13px; flex-wrap: wrap; }
-    .meta-row span { display: inline-flex; align-items: center; gap: 8px; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); opacity: 0.55; }
+    .hero h1 em { font-style: italic; color: var(--accent); padding-bottom: 0.08em; display: inline-block; line-height: 1.12; }
+    .hero p.lede { max-width: 540px; font-size: 17.5px; color: rgba(245,240,232,0.62); margin-top: 22px; line-height: 1.65; }
+    .hero-ctas { display: flex; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+    .btn { padding: 13px 24px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 0; transition: transform 140ms ease, box-shadow 200ms ease, background 160ms ease, color 160ms ease; cursor: pointer; }
+    .btn-solid { background: var(--cream); color: #191612; border: 1px solid var(--cream); }
+    .btn-solid:hover { background: var(--accent); border-color: var(--accent); color: #191612; transform: translateY(-1px); }
+    .btn-ghost-dark { border: 1px solid rgba(245,240,232,0.28); color: rgba(245,240,232,0.85); background: transparent; }
+    .btn-ghost-dark:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-ghost-light { border: 1px solid var(--line); color: var(--content); background: var(--surface); }
+    .btn-ghost-light:hover { border-color: var(--accent-2); color: var(--accent-2); }
 
-    /* sections */
-    section { padding: 80px 0; border-bottom: 1px solid var(--line); position: relative; }
-    section:last-child { border-bottom: none; }
-    .section-head { margin-bottom: 36px; position: relative; }
-    .label {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--subtle);
-      margin-bottom: 14px;
-    }
-    .label::before { content:""; width: 18px; height: 1px; background: var(--ink); opacity: 0.35; display:inline-block; }
-    h2 {
-      font-family: "Instrument Serif", Georgia, serif;
-      font-size: clamp(28px, 3.2vw, 38px);
-      font-weight: 400;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      max-width: 820px;
-      line-height: 1.15;
-    }
-    .section-head p { margin-top: 14px; color: var(--muted); max-width: 760px; line-height: 1.65; font-size: 16px; }
-    .section-head p + p { margin-top: 10px; }
-    .section-head strong { color: var(--ink); font-weight: 500; }
+    /* ---------- stats strip ---------- */
+    .stats { padding: 52px 0; border-bottom: 1px solid var(--line); }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 0 28px; border-left: 1px solid var(--line); }
+    .stat:first-child { border-left: none; padding-left: 0; }
+    .stat .num { font-family: "Instrument Serif", Georgia, serif; font-size: 42px; line-height: 1; color: var(--content); }
+    .stat .label { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-top: 8px; }
+    @media (max-width: 760px) { .stats-row { grid-template-columns: 1fr 1fr; gap: 28px 0; } .stat { border-left: none; padding-left: 0; } .stat:nth-child(even) { padding-left: 20px; border-left: 1px solid var(--line); } }
 
-    /* stats */
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    @media (max-width: 860px) { .stats { grid-template-columns: 1fr 1fr; } }
-    .stat {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 140ms ease, border-color 160ms ease;
-    }
-    .stat:hover { transform: translateY(-3px); border-color: var(--ink); }
-    .stat::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--ink);
-      opacity: 0;
-      transition: opacity 160ms ease;
-    }
-    .stat:hover::before { opacity: 1; }
-    .stat-num { font-family: "Instrument Serif", Georgia, serif; font-size: 38px; color: var(--ink); line-height: 1.05; letter-spacing: -0.025em; }
-    .stat-label { margin-top: 10px; font-size: 13.5px; color: var(--muted); line-height: 1.55; }
-    .stat-foot { margin-top: 12px; font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10.5px; color: var(--subtle); letter-spacing: 0.06em; text-transform: uppercase; }
+    /* ---------- section shell ---------- */
+    section.block { padding: 84px 0; }
+    section.block.dark { background: var(--forest-dark); color: #F5F0E8; }
+    section.block.tight-top { padding-top: 0; }
+    .section-head { max-width: 620px; margin-bottom: 42px; }
+    .section-head h2 { font-family: "Instrument Serif", Georgia, serif; font-size: clamp(30px, 3.8vw, 42px); letter-spacing: -0.02em; line-height: 1.08; margin-top: 14px; }
+    .section-head p { color: var(--muted); margin-top: 14px; max-width: 52ch; font-size: 15.5px; }
+    section.block.dark .section-head p { color: rgba(245,240,232,0.6); }
 
-    /* before/after */
-    .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    @media (max-width: 860px) { .ba { grid-template-columns: 1fr; } }
-    .ba-col {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 22px;
-      position: relative;
-    }
-    .ba-col.bad { border-left: 3px solid var(--warn); }
-    .ba-col.good { border-left: 3px solid var(--accent); }
-    .ba-title { font-family: "Instrument Serif", Georgia, serif; font-size: 17px; font-weight: 400; font-style: italic; color: var(--ink); margin-bottom: 12px; display:flex; align-items:center; gap:10px; }
-    .ba-icon { width:22px; height:22px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; }
-    .bad .ba-icon { background: rgba(251,86,91,0.12); color: var(--warn); }
-    .good .ba-icon { background: rgba(195,118,36,0.12); color: var(--accent-2); }
-    .ba-col pre {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.7;
-      color: var(--ink);
-      overflow-x: auto;
-    }
+    /* ---------- capability bento ---------- */
+    .bento { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+    .bento-tile { border: 1px solid var(--line); padding: 30px; background: var(--surface); }
+    .bento-tile.wide { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+    .bento-tile h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+    .bento-tile p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .bento-tile .shot { border: 1px solid var(--line); overflow: hidden; }
+    .cluster-list { display: flex; flex-direction: column; gap: 16px; }
+    .cluster-list .row { display: flex; gap: 14px; align-items: baseline; }
+    .cluster-list .row .tag { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--accent-2); flex-shrink: 0; width: 108px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .cluster-list .row .txt { font-size: 14px; color: var(--content); line-height: 1.5; }
+    .cluster-list .row .txt b { font-weight: 600; }
+    @media (max-width: 860px) { .bento { grid-template-columns: 1fr; } .bento-tile.wide { grid-template-columns: 1fr; } }
 
-    /* examples */
-    .examples { display: grid; grid-template-columns: 1fr; gap: 18px; }
-    .example {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 22px;
-      transition: border-color 160ms ease;
-      position: relative;
+    /* ---------- terminal preview ---------- */
+    .term-panel {
+      border: 1px solid rgba(245,240,232,0.14); background: #0C1109; overflow: hidden;
     }
-    .example:hover { border-color: var(--ink); }
-    .example-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; }
-    .example-title { font-family: "Instrument Serif", Georgia, serif; font-size: 17px; font-weight: 400; font-style: italic; color: var(--ink); }
-    .example-tag { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; color: var(--subtle); letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--bg-3); border: 1px solid var(--line); }
-    .example pre {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px;
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.7;
-      color: var(--ink);
-      overflow-x: auto;
-    }
-    .example img {
-      display: block;
-      max-width: 100%;
-      height: auto;
-    }
+    .term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 16px; border-bottom: 1px solid rgba(245,240,232,0.08); }
+    .term-bar span { width: 10px; height: 10px; border-radius: 50%; background: rgba(245,240,232,0.18); }
+    .term-body { padding: 22px 24px; font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 1.75; color: rgba(245,240,232,0.82); overflow-x: auto; white-space: pre; }
+    .term-body .g { color: #7fce9c; }
+    .term-body .y { color: #e0b866; }
+    .term-body .r { color: #d97b76; }
+    .term-body .dim { color: rgba(245,240,232,0.35); }
 
-    /* tools grid */
-    .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    @media (max-width: 980px) { .tools { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 640px) { .tools { grid-template-columns: 1fr; } }
-    .tool {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 18px;
-      transition: transform 140ms ease, border-color 160ms ease;
-      position: relative;
-    }
-    .tool:hover { transform: translateY(-3px); border-color: var(--ink); }
-    .tool h3 {
-      font-family: "Instrument Serif", Georgia, serif;
-      font-size: 16px;
-      font-weight: 400;
-      font-style: italic;
-      color: var(--ink);
-      margin-bottom: 6px;
-      letter-spacing: 0.01em;
-    }
-    .tool .ret {
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 11px;
-      color: var(--subtle);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .tool p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
-    .tool p code {
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 12px;
-      background: var(--code-bg);
-      border: 1px solid var(--code-line);
-      padding: 2px 7px;
-      border-radius: 6px;
-      color: var(--ink);
-    }
-    .tool .when { margin-top: 10px; font-size: 12.5px; color: var(--subtle); }
-    .tool .when strong { color: var(--muted); font-weight: 500; }
+    /* ---------- install ---------- */
+    .code-block { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px; font-family: "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.9; color: var(--content); overflow-x: auto; white-space: pre; }
+    .code-block .cmt { color: var(--subtle); }
+    .install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+    .install-grid .side p { font-size: 14.5px; color: var(--muted); line-height: 1.7; }
+    .install-grid .side p + p { margin-top: 14px; }
+    @media (max-width: 860px) { .install-grid { grid-template-columns: 1fr; } }
 
-    /* flow */
-    .flow { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
-    .flow-row { display: flex; align-items: flex-start; gap: 14px; }
-    .flow-num { width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
-    .flow-body { flex: 1; }
-    .flow-body h4 { font-family: "Instrument Serif", Georgia, serif; font-size: 16px; font-weight: 400; font-style: italic; color: var(--ink); margin-bottom: 6px; }
-    .flow-body p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
-    .flow-body p code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; background: var(--code-bg); border: 1px solid var(--code-line); padding: 1px 6px; border-radius: 5px; color: var(--ink); }
-    @media (min-width: 860px) {
-      .flow { flex-direction: column; gap: 18px; }
-    }
+    /* ---------- final cta ---------- */
+    .cta-final { text-align: left; padding: 96px 0; }
+    .cta-final .wrap { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .cta-final h2 { font-family: "Instrument Serif", Georgia, serif; font-size: clamp(30px, 4.4vw, 46px); font-style: italic; max-width: 560px; }
 
-    /* examples / architecture */
-    .examples { margin-top: 28px; }
-    .example { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-    .example-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .example-title { font-family: "Instrument Serif", Georgia, serif; font-size: 15px; font-weight: 400; font-style: italic; color: var(--ink); }
-    .example-tag { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.08em; }
-    .example img { width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+    /* ---------- footer ---------- */
+    footer { padding: 30px 0; background: #1a1a1a; color: rgba(255,255,255,0.4); font-size: 12.5px; }
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .footer-inner a { color: rgba(255,255,255,0.55); }
+    .footer-inner a:hover { color: #fff; }
 
-    /* cta strip */
-    .cta-strip {
-      margin-top: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 22px;
-      position: relative;
-      overflow: hidden;
-    }
-    .cta-strip::before {
-      content: "";
-      position: absolute;
-      top: -40px; right: -60px;
-      width: 260px; height: 260px;
-      background: radial-gradient(circle at center, rgba(195,118,36,0.1) 0%, rgba(195,118,36,0) 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .cta-strip-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; flex-wrap: wrap; }
-    .cta-strip h3 { font-family: "Instrument Serif", Georgia, serif; font-size: 17px; font-weight: 400; font-style: italic; color: var(--ink); }
-    .cta-strip p { font-size: 13px; color: var(--muted); margin-top: 4px; max-width: 520px; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 15px;
-      border-radius: 999px;
-      font-size: 13.5px;
-      border: 1px solid var(--ink);
-      color: #fff;
-      background: var(--ink);
-      transition: transform 80ms ease, opacity 160ms ease;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-    .btn:hover { transform: translateY(-1px); opacity: 0.88; }
-    .btn-ghost { background: transparent; color: var(--ink); }
-    .btn-ghost:hover { background: var(--bg-2); opacity: 1; }
-
-    footer { padding: 36px 0; border-top: 1px solid var(--line); color: var(--subtle); font-size: 12.5px; background: var(--bg-2); }
-    .footer-inner { display:flex; justify-content:space-between; align-items:center; gap: 12px; flex-wrap: wrap; }
-    .footer-inner a { color: var(--muted); }
-    .footer-inner a:hover { color: var(--ink); }
-
-    /* fade-in */
-    .fade { opacity: 0; transform: translateY(14px); transition: opacity 700ms ease, transform 700ms ease; }
-    .fade.visible { opacity: 1; transform: translateY(0); }
-
-    /* section transitions */
-    .section-transition { height: 1px; background: linear-gradient(90deg, transparent 0%, var(--line) 20%, var(--line) 80%, transparent 100%); border: none; margin: 0; }
+    /* ---------- reveal ---------- */
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
   </style>
 </head>
 <body>
   <nav>
     <div class="wrap nav-inner">
-      <a href="#" class="brand">vitals</a>
+      <a href="#" class="brand serif">vitals</a>
       <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#proof">Proof</a>
-        <a href="#how">How it works</a>
-        <a href="https://github.com/anirudhprashant/agent-vitals">GitHub →</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#agent-view">What your agent sees</a>
+        <a href="#install">Install</a>
       </div>
-      <a href="https://github.com/anirudhprashant/agent-vitals" class="nav-cta">★ Star</a>
+      <a href="https://github.com/anirudhprashant/agent-vitals" class="nav-cta">Star on GitHub</a>
     </div>
   </nav>
 
-  <section class="hero">
+  <header class="hero">
     <div class="wrap hero-inner">
-      <span class="badge"><span class="dot"></span> v0.7.0</span>
-      <span class="badge">GPL v3</span>
-      <span class="badge">~6000 LOC</span>
-      <span class="badge">295 tests</span>
-
-      <span class="overline">solo-dev observability for AI agent stacks</span>
-      <h1>Make small models perform <em>like Opus</em>.</h1>
-      <p class="lede">
-        vitals reads your actual session data, finds the patterns that make big models effective,
-        and turns them into optimized prompts, playbooks, and checks you can run locally.
-      </p>
-      <div class="install">
-        <code><span class="dollar">$</span> uv tool install agent-vitals && av install <span style="color:var(--subtle)"># interactive setup</span></code>
-        <button class="copy-btn" onclick="copyInstall(this)">copy</button>
+      <span class="kicker on-dark"><span class="dot"></span>Local-first · GPL v3 · No daemon, no cloud</span>
+      <h1 class="serif">Give your AI agent<br />a memory of <em>its own infrastructure.</em></h1>
+      <p class="lede">Extracts what's actually scheduled and running on your machine, cron, systemd, MCP servers, skills, and hands your agent a health check before it touches any of it.</p>
+      <div class="hero-ctas">
+        <a href="https://github.com/anirudhprashant/agent-vitals" class="btn btn-solid">Star on GitHub</a>
+        <a href="#install" class="btn btn-ghost-dark">Quick start</a>
       </div>
-      <div class="meta-row">
-        <span><span class="dot"></span> 13 MCP tools</span>
-        <span><span class="dot"></span> 20 CLI commands</span>
-        <span><span class="dot"></span> 15 modules</span>
-        <span><span class="dot"></span> local-first</span>
-        <span><span class="dot"></span> no daemon</span>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="wrap">
+      <div class="stats-row reveal">
+        <div class="stat"><div class="num">13</div><div class="label">MCP tools</div></div>
+        <div class="stat"><div class="num">20</div><div class="label">CLI commands</div></div>
+        <div class="stat"><div class="num">~6000</div><div class="label">Lines of code</div></div>
+        <div class="stat"><div class="num">295</div><div class="label">Tests</div></div>
       </div>
     </div>
   </section>
 
-  <section id="features">
+  <section class="block" id="capabilities">
     <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Features</span>
-        <h2>The failure modes most tools miss.</h2>
-        <p>Silent cron breakage. Doom loops. Unused MCP tools eating context. Token burn you don't notice until the invoice. vitals catches all of them.</p>
+      <div class="section-head reveal">
+        <h2>What it actually watches</h2>
+        <p>No dashboard, no telemetry sent anywhere. Everything runs against local session logs and system state, then feeds back into the same agent that's using it.</p>
       </div>
-      <div class="examples">
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Shadow & stale detection</span>
-            <span class="example-tag">always-on</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Cron jobs pointing at deleted binaries. MCP servers that fail to register. Systemd timers for dead services. <code>shadow_list</code> shows everything; <code>shadow_stale</code> shows only what's broken.</p>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Burnout tracking</span>
-            <span class="example-tag">always-on</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Per-agent completion rates from pi run-history and Claude Code sessions. Trends tell you if the agent is improving or degrading. Stuck-session heuristic catches runaway loops before they eat your context.</p>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Efficiency suite</span>
-            <span class="example-tag">v0.6.0</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Doom-loop detection, unused-tool finder, token spend with Effective Tokens, SSH polling detector, overlap detection, session compaction, and coaching — all from your actual session data.</p>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Pre-action hooks</span>
-            <span class="example-tag">v0.3.0</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">PATH wrappers around <code>crontab</code> and <code>systemctl --user</code> that refuse mutations when vitals is stale. Reads are never blocked. Bypass with <code>VITALS_BYPASS=1</code> for emergencies.</p>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Trace replay + diff</span>
-            <span class="example-tag">v0.7.0</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Recorded session forensics for Claude Code and pi. <code>av trace replay</code> walks any session step-by-step without exposing prompt or tool payloads. <code>av trace diff</code> finds the exact step where two sessions diverged — tool name, error status, and timing. No instrumentation required; works on existing JSONL logs.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="proof">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Proof</span>
-        <h2>The numbers behind the claim.</h2>
-        <p>Measured from real session data, not marketing copy.</p>
-      </div>
-      <div class="stats fade">
-        <div class="stat">
-          <div class="stat-num">5</div>
-          <div class="stat-label">MCP tools your agent can call directly from inside its own loop</div>
-          <div class="stat-foot">vitals_summary · shadow_list · shadow_stale · burnout_summary · burnout_stuck_sessions</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">18</div>
-          <div class="stat-label">CLI commands for you, the operator</div>
-          <div class="stat-foot">install · doctor · detect · mcp · shadow · burnout · drift · cost · tokens · loops · ssh · unused · overlap · coach · sessions · compact · snapshot · hooks · trace</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">~5–10KB</div>
-          <div class="stat-label">Pure context overhead per unused MCP tool, per agent turn</div>
-          <div class="stat-foot">Source: GitHub MCP context measurements</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">0</div>
-          <div class="stat-label">Cloud services, daemons, or accounts required</div>
-          <div class="stat-foot">Everything runs against local JSONLs and config files</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="why">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Why this matters</span>
-        <h2>Agents are only as good as their environment.</h2>
-        <p>You wouldn't deploy a service without health checks, logs, or alerts. Yet most agents run blind — no awareness of their own cron jobs, config drift, token spend, or stuck sessions. vitals fixes that.</p>
-      </div>
-      <div class="examples">
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Silent breakage is the norm</span>
-            <span class="example-tag">reality</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">A cron job pointing at a deleted binary. An MCP server that silently fails to register. A session stuck in a loop burning tokens. These don't surface until something breaks — often in production, often at 2am.</p>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Context bloat compounds</span>
-            <span class="example-tag">cost</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">Every unused MCP tool costs 5–10KB per turn. A single doom loop can cost 10x more tokens than a clean run. Over weeks, this turns a $20 token bill into $200 — and you won't notice until the invoice arrives.</p>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Small models need playbooks</span>
-            <span class="example-tag">performance</span>
-          </div>
-          <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px;">The gap between small and large models isn't reasoning — it's context quality, tool selection, and prompt structure. vitals extracts the playbook from your best runs and makes it reusable.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="examples">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Examples</span>
-        <h2>Real commands. Real findings.</h2>
-        <p>These are actual outputs from running vitals against real session data.</p>
-      </div>
-      <div class="examples">
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Find the silent token burn</span>
-            <span class="example-tag">av cost</span>
-          </div>
-          <pre>-home-example-user                     6,685,826,708 tok   ~$3367.90   (step-3.7-flash)
---home-example-user--                  1,310,620,608 tok   ~$608.62   (anthropic/claude-haiku-4.5)
-  run-0                                641,024 tok   ~$  0.75   (MiniMax-M3)
-
-total: 8,289,087,956 tokens, ~$4140.58
-effective tokens (ET): 1,310,020,955
-model downgrade suggestion:
-  -home-example-user--claude-plugins-cache-telegram-plugin:
-  using claude-opus-4-8 but only 23 output tokens — downgrade to claude-sonnet-4 to save ~$0.59</pre>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Catch the doom loop</span>
-            <span class="example-tag">av loops</span>
-          </div>
-          <pre>host           count  target
--------------  -----  --------------------
-claude-code      418   ssh remote-host-1
-claude-code      213   ssh remote-host-2
-claude-code      203   ssh remote-host-1
-claude-code      171   ssh remote-host-1
-claude-code      148   ssh remote-host-2
-
-75 pattern(s) flagged</pre>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Trim unused context bloat</span>
-            <span class="example-tag">av unused</span>
-          </div>
-          <pre>unused: 4 server(s) with zero observed calls
-
-  server         config_path                                    est waste/turn
-  -------------- --------------------------------------------  -------------
-  vitals   av mcp                                         ~4KB
-  memory-server     .../memory-server/13.10.2/scripts/mcp-server.cjs  ~4KB
-  filesystem     ...server-filesystem ~/Projects     ~4KB
-  github         npx -y @modelcontextprotocol/server-github     ~4KB
-
-used tools (35 tool(s) with observed calls)
-  brave-search   brave_web_search    350
-  firecrawl     search              120
-  context7      resolve-library-id  24</pre>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Get an optimized system prompt</span>
-            <span class="example-tag">av coach --harness</span>
-          </div>
-          <pre># System Prompt — Small-Model Performance Harness
-
-## Hard Rules
-1. Never claim inability. Attempt first. If a task looks doable, just do it.
-2. Fetch primary sources before defending hard technical claims.
-3. Log without asking. Errors→problems, credentials→credentials, infra→technical.
-4. SSH/remote: just try it. Use `ssh &lt;alias&gt; &quot;&lt;cmd&gt;&quot;` via bash. Report real errors.
-5. Cap context: system prompt &lt;2KB, rules &lt;60 lines. Drop redundant tools.
-
-## Voice
-Blunt, dry, self-deprecating. No corporate speak, no 'would you like me to', no
-'Sure, happy to help'. Just do it.
-
-## Tool Discipline
-- Prefer cheap tools (grep, glob) over expensive ones (read full file).
-- Use Bash for shell, Read for files, Edit for changes.
-- After reading a file, remember it — don't re-read unless changed.
-- Verify each tool result before next action.
-
-## Delegation
-- Do it yourself: small, single-step, conversational.
-- Delegate: multi-phase, parallel concerns, fresh-context win, token-budget protection.
-- After subagent finishes: summarize in your own voice, never just paste output.
-
-## Error Recovery
-- If a tool fails 3 times with same input, try a completely different approach.
-- Never repeat the same failed call.
-- If uncertain, ask clarifying question before proceeding.
-
-## Token Budget
-- Each tool call costs tokens. Plan before executing.
-- If output exceeds 1000 lines, summarize or narrow scope.
-- Reuse previous results instead of re-querying.
-
-## Verification
-- Before editing, read the file first.
-- After tool call, verify result matches intent.
-- If you lack information, search before answering.
-
-## Research Discipline
-- When in doubt about a hard spec, fetch the vendor's official doc first, cite
-the exact line, then answer.
-- Don't lean on training-data recall for sourceable specs.
-
-## Context Engineering
-- Keep system prompt lean and high-signal.
-- Drop redundant MCP tools — each unused tool costs 5-10KB per turn.</pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="tools">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">The primitives</span>
-        <h2>13 MCP tools · 20 CLI commands · ~6000 lines of Python.</h2>
-        <p>Each tool is local-only, read-only, and safe to call repeatedly. None of them modify state.</p>
-        <p><strong>For small models:</strong> the efficiency suite extracts proven tool sequences, detects failure patterns, and generates optimized system prompts that make your current model perform like a much larger one.</p>
-      </div>
-      <div class="tools">
-        <div class="tool fade">
-          <h3>vitals_summary()</h3>
-          <div class="ret">→ str · plain English</div>
-          <p>Health check: what's broken, what's stale, what's wasting tokens. Always-call-first context for any agent turn.</p>
-          <div class="when"><strong>When</strong> Before tasks, before infra changes, when stuck.</div>
-        </div>
-        <div class="tool fade">
-          <h3>shadow_list()</h3>
-          <div class="ret">→ str · JSON array</div>
-          <p>Every cron job, systemd timer, MCP server, and scheduled skill currently configured on the user's machine. Each entry carries a <code>from &lt;path&gt;</code> note so the agent knows exactly where to look.</p>
-          <div class="when"><strong>When</strong> Before infra changes. When recommending MCP installs (check duplicates first).</div>
-        </div>
-        <div class="tool fade">
-          <h3>shadow_stale()</h3>
-          <div class="ret">→ str · JSON array</div>
-          <p>Filtered view of <code>shadow_list</code> — only the broken references. Cron entries pointing at deleted binaries. MCP servers that fail to register. The shadow's dark side.</p>
-          <div class="when"><strong>When</strong> Before claiming "your crontab is fine". Before scheduling new cron / timer / systemd work.</div>
-        </div>
-        <div class="tool fade">
-          <h3>burnout_summary(days=7)</h3>
-          <div class="ret">→ str · JSON object</div>
-          <p>Per-agent completion rates from <code>~/.pi/agent/run-history.jsonl</code> plus Claude Code session counts. Trend column tells the agent if completion is improving or degrading over time.</p>
-          <div class="when"><strong>When</strong> After a long task completes. To compare your run against your baseline.</div>
-        </div>
-        <div class="tool fade">
-          <h3>burnout_stuck_sessions(days=7, limit=10)</h3>
-          <div class="ret">→ str · JSON array</div>
-          <p>Claude Code sessions with 200+ events. Heuristic only, but catches the obvious runaway loops. Each entry has a session UUID so the agent can drill in.</p>
-          <div class="when"><strong>When</strong> Suspecting a loop. To see if other sessions are stuck too.</div>
-        </div>
-        <div class="tool fade">
-          <h3 style="color:var(--subtle)">// v0.3.0 — shipped</h3>
-          <div class="ret">→ hooks · pre-action gates</div>
-          <p>Priming tells the agent to call vitals. <strong style="color:var(--ink)">Hooks enforce it.</strong> v0.3.0 refuses to mutate <code>crontab</code>, <code>systemd</code>, or MCP configs until <code>shadow_stale</code> has been called in the last 60 seconds. Priming gets you ~30% of the way. Hooks get you the rest.</p>
-          <div class="when"><strong>Status</strong> Shipped. <code>av hooks install</code>.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av loops</h3>
-          <div class="ret">→ doom-loop detection (exact + soft)</div>
-          <p>Scans every session for repeated identical tool calls and file edits. <strong style="color:var(--ink)">Doom loops are the #1 failure mode for autonomous agents</strong> — they keep hitting the same tool or editing the same file without making progress. A single loop can cost 10x more tokens than a clean run. Detects two flavors:
-            <br/>1. <strong>Exact repetition</strong>: same Bash command 20+ times, or same Edit 10+ times.
-            <br/>2. <strong>Soft loops</strong>: same command structure (paths/flags/args vary) repeated 20+ times.
-          Polling commands (ps, pgrep, pidof) are excluded. File edits are compared by content, so progressive changes to the same file are not flagged.</p>
-          <div class="when"><strong>When</strong> After a session is "taking forever" or cost spikes.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av unused</h3>
-          <div class="ret">→ per-server + per-tool unused MCP detector</div>
-          <p>Every registered MCP tool is part of every agent turn's context. GitHub measured <strong style="color:var(--ink)">8–12KB of pure overhead per turn</strong> from tools the agent never uses. Now reports at two granularities:
-            <br/>• <strong>Unused servers</strong>: MCP servers with zero observed calls (~5KB waste per turn).
-            <br/>• <strong>Used tools</strong>: individual tools within active servers, with call counts.
-          Cross-references registered vs. used to find the dead weight.</p>
-          <div class="when"><strong>When</strong> After installing a new MCP server. Or weekly.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av cost — with ET metric</h3>
-          <div class="ret">→ token spend + GitHub's Effective Tokens formula</div>
-          <p>Parses session JSONLs for token usage, groups by project, estimates USD. Uses the <strong style="color:var(--ink)">actual model observed in each session</strong> for pricing when available (falls back to Sonnet-class defaults for unknown models). Includes GitHub's <strong style="color:var(--ink)">Effective Tokens</strong> formula: <code style="color:var(--ink)">m * (I + 0.1*C + 1.0*W + 4.0*O)</code> — output weighted 4x, cache_read 0.1x, model-tier scaled. Now includes <strong style="color:var(--ink)">model downgrade suggestions</strong> when high-tier models are used for low-output work.</p>
-          <div class="when"><strong>When</strong> Monthly budget review. Or whenever the bill looks high.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av tokens</h3>
-          <div class="ret">→ token-heavy tool identification</div>
-          <p>Shows which tools burn the most tokens per call. Attributes token usage to each tool call so you can spot expensive tools that might benefit from caching, batching, or replacement. No more guessing which tool is responsible for the token bill.</p>
-          <div class="when"><strong>When</strong> After a cost spike. Or when you want to optimize token usage.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av tokens --suggest</h3>
-          <div class="ret">→ optimization suggestions</div>
-          <p>Analyzes token usage patterns and suggests concrete optimizations. Flags dominant tools (&gt;30% of tokens), high-average tools (&gt;100K tokens/call), output-heavy tools, and batching opportunities. Gives you actionable advice, not just data.</p>
-          <div class="when"><strong>When</strong> After running <code>av tokens</code> and wanting next steps.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av ssh</h3>
-          <div class="ret">→ SSH polling loop detector</div>
-          <p>Detects repeated SSH commands to the same host — a common token-wasting pattern where an agent polls a remote server instead of using proper async/watch mechanisms. On the box this was built on it flagged 74 polling loops, the worst a single host hit 418 times in one session. Each finding includes the target host, call count, and remediation advice.</p>
-          <div class="when"><strong>When</strong> After a session with heavy SSH usage. Or when token bill is unexplained.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av overlap</h3>
-          <div class="ret">→ overlapping MCP tool detector</div>
-          <p>Finds MCP servers that share tool names or have similar tool names, suggesting possible redundancy. Removing overlapping tools reduces per-turn context weight. Detects both exact matches (same name) and similar names (e.g., <code>search</code> across multiple servers).</p>
-          <div class="when"><strong>When</strong> After installing new MCP servers. Or when context feels bloated.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av compact</h3>
-          <div class="ret">→ session compaction tool</div>
-          <p>Compacts large session files by keeping only the most recent N events. Creates a .jsonl.bak backup before modifying. Use <code>--dry-run</code> to preview savings. Found 12 sessions eligible for compaction on typical dev boxes, saving ~140MB total. Reduces context bloat and speeds up future scans.</p>
-          <div class="when"><strong>When</strong> Sessions are large (&gt;10MB or &gt;5000 events). Or before archiving old work.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av compact --dry-run</h3>
-          <div class="ret">→ preview compaction savings</div>
-          <p>Shows which sessions would be compacted and how much space would be saved, without modifying any files. Safe way to audit before running the actual compaction.</p>
-          <div class="when"><strong>When</strong> Before running <code>av compact</code> to verify impact.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av coach</h3>
-          <div class="ret">→ system prompt optimization from session data</div>
-          <p>Analyzes your actual session data to generate optimized system prompt fragments, tool-use playbooks, and recovery strategies. This is what makes smaller models dramatically more effective — it gives them opus-level operational playbooks extracted from your real usage patterns. Detects proven tool sequences, failure patterns, and generates model-specific tips. Use <code>--harness</code> to output a complete ready-to-use system prompt.</p>
-          <div class="when"><strong>When</strong> You want to make your current model smarter without changing it.</div>
-        </div>
-        <div class="tool fade">
-          <h3>av trace</h3>
-          <div class="ret">→ recorded session forensics + agent coaching</div>
-          <p>Replay, diff, filter, and profile agent sessions from existing JSONL logs. <code>av trace replay</code> walks a session step-by-step. <code>av trace diff</code> finds the exact divergence point. <code>av trace profile</code> shows per-tool error rates and durations. <code>av trace suggest</code> generates actionable improvements. <code>av trace watch</code> tails a live session. No payloads, no secrets, no instrumentation required.</p>
-          <div class="when"><strong>When</strong> Agent failed and you need to know why. Or you want to compare two runs. Or you want to make your agent faster.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="how">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">How it works</span>
-        <h2>Three moves. No daemon. No cloud.</h2>
-        <p>Everything runs locally against your own session JSONLs and config files. No accounts, no background services, no telemetry.</p>
-      </div>
-      <div class="flow fade">
-        <div class="flow-row">
-          <div class="flow-num">1</div>
-          <div class="flow-body">
-            <h4>Install</h4>
-            <p><code>uv tool install agent-vitals</code> then <code>av install</code>. Registers the MCP server and priming skill for your agent host.</p>
-          </div>
-        </div>
-        <div class="flow-row">
-          <div class="flow-num">2</div>
-          <div class="flow-body">
-            <h4>Observe</h4>
-            <p>The agent calls <code>vitals_summary</code> before risky operations. Hooks gate <code>crontab</code> / <code>systemctl</code> until vitals is fresh.</p>
-          </div>
-        </div>
-        <div class="flow-row">
-          <div class="flow-num">3</div>
-          <div class="flow-body">
-            <h4>Optimize + debug</h4>
-            <p>Run <code>av cost</code>, <code>av loops</code>, <code>av coach</code>, <code>av trace profile</code> to extract patterns and shrink the model's workload. When something breaks, <code>av trace diff</code> finds the exact divergence point between two runs. <code>av trace suggest</code> tells you exactly what to fix.</p>
-          </div>
-        </div>
-      </div>
-      <div class="examples fade" style="margin-top:28px;">
-        <div class="example">
-          <div class="example-header">
-            <span class="example-title">How data flows</span>
-            <span class="example-tag">architecture</span>
-          </div>
-          <img src="architecture.png" alt="agent-vitals architecture diagram" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="screenshots">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Screenshots</span>
-        <h2>What it looks like in your terminal.</h2>
-        <p>Real output from running vitals on a real machine.</p>
-      </div>
-      <div class="examples fade">
-        <div class="example">
-          <div class="example-header">
-            <span class="example-title">Terminal output</span>
-            <span class="example-tag">Ghostty</span>
-          </div>
-          <img src="terminal.png" alt="agent-vitals terminal screenshot" style="width:100%; border-radius:12px; border:1px solid var(--line); margin-top:10px;" />
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="install">
-    <div class="wrap">
-      <div class="section-head fade">
-        <span class="label">Install</span>
-        <h2>One command. Then verify.</h2>
-        <p>No daemon. No cloud. No accounts. Just a local install that registers the MCP server and priming skill for your existing agent host.</p>
-      </div>
-      <div class="examples">
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Install</span>
-            <span class="example-tag">Terminal</span>
-          </div>
-          <pre>uv tool install agent-vitals
-av install</pre>
-        </div>
-        <div class="example fade">
-          <div class="example-header">
-            <span class="example-title">Verify</span>
-            <span class="example-tag">Terminal</span>
-          </div>
-          <pre>av loops
-av unused
-av cost
-av tokens
-av ssh
-av overlap
-av compact --dry-run
-av coach
-av coach --harness
-av trace list
-av trace summary &lt;session&gt;
-av trace replay &lt;session&gt;
-av trace diff &lt;a&gt; &lt;b&gt;
-av trace errors &lt;session&gt;
-av trace profile &lt;session&gt;
-av trace grep &lt;session&gt; &lt;pattern&gt;
-av trace export &lt;session&gt;
-av trace suggest &lt;session&gt;
-av trace watch &lt;session&gt;</pre>
-      </div>
-      <div class="cta-strip fade">
-        <div class="cta-strip-inner">
+      <div class="bento">
+        <div class="bento-tile wide reveal">
           <div>
-            <h3>Ready to make your agent sharper?</h3>
-            <p>Star the repo, open an issue, or just install and try it.</p>
+            <h3>Terminal-native, one command at a time</h3>
+            <div class="cluster-list" style="margin-top:16px;">
+              <div class="row"><span class="tag">av doctor</span><span class="txt">System-level checks: <b>time sync, Docker, memory, DB connections.</b></span></div>
+              <div class="row"><span class="tag">av shadow</span><span class="txt">Enumerates everything scheduled or running under a process tree, filtered to what's actually broken.</span></div>
+              <div class="row"><span class="tag">av loops</span><span class="txt">Live status of background loops: running, paused, last-run timestamp.</span></div>
+            </div>
           </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="https://github.com/anirudhprashant/agent-vitals" class="btn">★ Star on GitHub</a>
-            <a href="https://github.com/anirudhprashant/agent-vitals/issues" class="btn btn-ghost">Open an issue</a>
-          </div>
+          <div class="shot"><img src="terminal.png" alt="agent-vitals terminal output showing av doctor, av shadow, and av loops" loading="lazy" /></div>
+        </div>
+        <div class="bento-tile reveal">
+          <h3>Burnout &amp; doom-loop detection</h3>
+          <p>Per-agent completion rates, stuck-session heuristics, and exact plus soft loop detection across Bash and Edit calls, excluding legitimate polling.</p>
+        </div>
+        <div class="bento-tile reveal">
+          <h3>Token cost &amp; unused tools</h3>
+          <p>Model-aware pricing with an Effective Tokens metric, plus per-server and per-tool usage. GitHub measures 8 to 12KB overhead per unused MCP tool, per turn.</p>
+        </div>
+        <div class="bento-tile reveal">
+          <h3>Trace suite</h3>
+          <p>Recorded session forensics for Claude Code and pi. <span class="mono" style="font-size:12.5px;">list · summary · replay · diff · errors · profile · grep · export · watch · suggest</span>. No payloads, no secrets.</p>
+        </div>
+        <div class="bento-tile reveal">
+          <h3>Pre-action hooks</h3>
+          <p>PATH wrappers around <span class="mono" style="font-size:12.5px;">crontab</span> and <span class="mono" style="font-size:12.5px;">systemctl</span> that gate mutations until vitals data is fresh, so your agent checks before it changes something scheduled.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="block dark" id="agent-view">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker on-dark" style="margin-bottom:14px; display:inline-flex;"><span class="dot"></span>What your agent sees</span>
+        <h2 class="serif">One call, before anything risky happens.</h2>
+        <p>When your agent calls <span class="mono" style="font-size:13px;">vitals_summary</span>, this is what comes back, straight from your own machine.</p>
       </div>
+      <div class="term-panel reveal">
+        <div class="term-bar"><span></span><span></span><span></span></div>
+        <div class="term-body">  ▄▀ vitals <span class="dim">— local agent stack health</span>
+
+  <span class="g">✓</span> 4 cron jobs, 2 systemd timers, 3 MCP servers tracked
+  <span class="y">!</span> 1 stale reference: <span class="dim">nightly-backup.service points to a removed script</span>
+  <span class="g">✓</span> burnout: 94% completion rate over last 30 sessions
+  <span class="r">×</span> doom-loop: 6 identical edits to config.yaml in one session
+
+  <span class="dim">run `av doctor` for the full breakdown</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <h2>How the pieces connect</h2>
+        <p>Three hops: your agent host calls the MCP server, the server reads local state, nothing leaves the machine.</p>
+      </div>
+      <div class="bento-tile reveal" style="padding:36px;">
+        <img src="architecture.png" alt="agent-vitals architecture diagram: agent hosts to vitals MCP server to local data" loading="lazy" style="width:100%;" />
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="install">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker on-light" style="margin-bottom:14px; display:inline-flex;"><span class="dot"></span>Install</span>
+        <h2>Thirty seconds, no accounts.</h2>
+      </div>
+      <div class="install-grid">
+        <div class="code-block reveal"><span class="cmt"># install and wire into your agent hosts</span>
+uv tool install agent-vitals
+av install    <span class="cmt"># detects hosts, wires MCP + priming skill</span></div>
+        <div class="side reveal">
+          <p>Detects pi, Claude Code, Cursor, OpenCode, and Codex CLI, and wires the MCP server plus a priming skill into whichever ones you run.</p>
+          <p>Restart your agent host afterward. The next session calls <span class="mono" style="font-size:13px;">vitals_summary</span> automatically before anything risky.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-final block dark">
+    <div class="wrap">
+      <h2 class="serif">Local-first. No daemon.<br />No cloud. <em style="color:var(--accent);">No accounts.</em></h2>
+      <a href="https://github.com/anirudhprashant/agent-vitals" class="btn btn-solid">Star on GitHub</a>
     </div>
   </section>
 
   <footer>
     <div class="wrap footer-inner">
-      <span>GPL v3. ~6000 LOC · 295 tests · 20 CLI commands. No daemon, no cloud, no accounts.</span>
+      <span>GPL v3. ~6000 LOC · 295 tests · 20 CLI commands.</span>
       <span>
         <a href="https://github.com/anirudhprashant/agent-vitals">GitHub</a> ·
         <a href="https://github.com/anirudhprashant/agent-vitals/releases">Releases</a> ·
@@ -903,24 +318,14 @@ av trace watch &lt;session&gt;</pre>
   </footer>
 
   <script>
-    function copyInstall(btn) {
-      const code = btn.parentElement.querySelector('code').innerText.replace('$ ', '');
-      navigator.clipboard.writeText(code).then(() => {
-        const original = btn.innerText;
-        btn.innerText = 'copied';
-        setTimeout(() => btn.innerText = original, 1200);
-      });
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { threshold: 0.15 });
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    } else {
+      document.querySelectorAll('.reveal').forEach((el) => el.classList.add('in'));
     }
-
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.06 });
-    document.querySelectorAll('.fade').forEach(el => io.observe(el));
   </script>
 </body>
 </html>
