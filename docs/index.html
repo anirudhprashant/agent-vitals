@@ -89,13 +89,17 @@
       content: ""; position: absolute; bottom: -220px; left: -120px; width: 480px; height: 480px; pointer-events: none;
       background: radial-gradient(circle at center, rgba(45,61,38,0.55) 0%, rgba(45,61,38,0) 70%);
     }
-    .hero-inner { position: relative; z-index: 2; max-width: 760px; }
+    .hero-inner { position: relative; z-index: 2; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
     .hero h1 {
-      font-size: clamp(42px, 6vw, 66px); line-height: 1.03; letter-spacing: -0.02em; margin-top: 20px;
+      font-size: clamp(36px, 4vw, 50px); line-height: 1.06; letter-spacing: -0.02em; margin-top: 18px;
     }
-    .hero h1 em { font-style: italic; color: var(--accent); padding-bottom: 0.08em; display: inline-block; line-height: 1.12; }
-    .hero p.lede { max-width: 540px; font-size: 17.5px; color: rgba(245,240,232,0.62); margin-top: 22px; line-height: 1.65; }
-    .hero-ctas { display: flex; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+    .hero h1 em { font-style: italic; color: var(--accent); padding-bottom: 0.1em; display: inline-block; line-height: 1.14; }
+    .hero p.lede { max-width: 460px; font-size: 16.5px; color: rgba(245,240,232,0.62); margin-top: 20px; line-height: 1.65; }
+    .hero-ctas { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero h1 { font-size: clamp(38px, 8vw, 48px); }
+    }
     .btn { padding: 13px 24px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 0; transition: transform 140ms ease, box-shadow 200ms ease, background 160ms ease, color 160ms ease; cursor: pointer; }
     .btn-solid { background: var(--cream); color: #191612; border: 1px solid var(--cream); }
     .btn-solid:hover { background: var(--accent); border-color: var(--accent); color: #191612; transform: translateY(-1px); }
@@ -142,11 +146,24 @@
     }
     .term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 16px; border-bottom: 1px solid rgba(245,240,232,0.08); }
     .term-bar span { width: 10px; height: 10px; border-radius: 50%; background: rgba(245,240,232,0.18); }
+    .term-bar .term-title { width: auto; height: auto; border-radius: 0; background: none; margin-left: 8px; font-size: 11px; color: rgba(245,240,232,0.35); letter-spacing: 0.06em; }
     .term-body { padding: 22px 24px; font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 1.75; color: rgba(245,240,232,0.82); overflow-x: auto; white-space: pre; }
+    .hero-term .term-panel { background: rgba(0,0,0,0.42); border-color: rgba(245,240,232,0.16); box-shadow: 0 30px 80px rgba(0,0,0,0.45); }
+    .hero-term .term-body { font-size: 12.5px; padding: 20px 22px; }
+    @media (max-width: 520px) { .hero-term .term-body { font-size: 10.5px; padding: 16px; } }
     .term-body .g { color: #7fce9c; }
     .term-body .y { color: #e0b866; }
     .term-body .r { color: #d97b76; }
     .term-body .dim { color: rgba(245,240,232,0.35); }
+
+    /* ---------- statement + hosts ---------- */
+    .statement { max-width: 860px; }
+    .statement p { font-size: clamp(26px, 3.4vw, 40px); line-height: 1.24; letter-spacing: -0.015em; color: var(--cream); }
+    .statement em { font-style: italic; color: var(--accent); }
+    .hosts { margin-top: 56px; padding-top: 28px; border-top: 1px solid rgba(245,240,232,0.12); display: flex; align-items: baseline; gap: 32px; flex-wrap: wrap; }
+    .hosts-label { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(245,240,232,0.32); flex-shrink: 0; }
+    .hosts-list { display: flex; gap: 28px; flex-wrap: wrap; }
+    .hosts-list span { font-size: 16px; color: rgba(245,240,232,0.72); }
 
     /* ---------- install ---------- */
     .code-block { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px; font-family: "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.9; color: var(--content); overflow-x: auto; white-space: pre; }
@@ -179,7 +196,7 @@
       <a href="#" class="brand serif">vitals</a>
       <div class="nav-links">
         <a href="#capabilities">Capabilities</a>
-        <a href="#agent-view">What your agent sees</a>
+        <a href="#agent-view">How it fits</a>
         <a href="#install">Install</a>
       </div>
       <a href="https://github.com/anirudhprashant/agent-vitals" class="nav-cta">Star on GitHub</a>
@@ -188,12 +205,30 @@
 
   <header class="hero">
     <div class="wrap hero-inner">
-      <span class="kicker on-dark"><span class="dot"></span>Local-first · GPL v3 · No daemon, no cloud</span>
-      <h1 class="serif">Give your AI agent<br />a memory of <em>its own infrastructure.</em></h1>
-      <p class="lede">Extracts what's actually scheduled and running on your machine, cron, systemd, MCP servers, skills, and hands your agent a health check before it touches any of it.</p>
-      <div class="hero-ctas">
-        <a href="https://github.com/anirudhprashant/agent-vitals" class="btn btn-solid">Star on GitHub</a>
-        <a href="#install" class="btn btn-ghost-dark">Quick start</a>
+      <div class="hero-copy">
+        <span class="kicker on-dark"><span class="dot"></span>Local-first · GPL v3 · No daemon</span>
+        <h1 class="serif">Give your AI agent a memory of <em>its own infrastructure.</em></h1>
+        <p class="lede">Cron, systemd, MCP servers, skills. Vitals reads what's actually running on your machine and hands your agent a health check before it touches any of it.</p>
+        <div class="hero-ctas">
+          <a href="https://github.com/anirudhprashant/agent-vitals" class="btn btn-solid">Star on GitHub</a>
+          <a href="#install" class="btn btn-ghost-dark">Quick start</a>
+        </div>
+      </div>
+      <div class="hero-term">
+        <div class="term-panel">
+          <div class="term-bar">
+            <span></span><span></span><span></span>
+            <span class="term-title mono">vitals_summary</span>
+          </div>
+          <div class="term-body">  ▄▀ vitals <span class="dim">- local agent stack health</span>
+
+  shadow: 13 autonomous thing(s) configured
+  <span class="dim">        (mcp: 8, systemd: 5)</span>
+  subagent burnout (7d): 5 runs, 100% <span class="g">✓</span>
+  claude code (7d): 170 sessions, 45,626 events,
+  <span class="y">⚠ 36 stuck</span>
+    <span class="dim">- biggest stuck-looking session: 7,118 events</span></div>
+        </div>
       </div>
     </div>
   </header>
@@ -249,21 +284,18 @@
 
   <section class="block dark" id="agent-view">
     <div class="wrap">
-      <div class="section-head reveal">
-        <span class="kicker on-dark" style="margin-bottom:14px; display:inline-flex;"><span class="dot"></span>What your agent sees</span>
-        <h2 class="serif">One call, before anything risky happens.</h2>
-        <p>When your agent calls <span class="mono" style="font-size:13px;">vitals_summary</span>, this is what comes back, straight from your own machine.</p>
-      </div>
-      <div class="term-panel reveal">
-        <div class="term-bar"><span></span><span></span><span></span></div>
-        <div class="term-body">  ▄▀ vitals <span class="dim">— local agent stack health</span>
-
-  <span class="g">✓</span> 4 cron jobs, 2 systemd timers, 3 MCP servers tracked
-  <span class="y">!</span> 1 stale reference: <span class="dim">nightly-backup.service points to a removed script</span>
-  <span class="g">✓</span> burnout: 94% completion rate over last 30 sessions
-  <span class="r">×</span> doom-loop: 6 identical edits to config.yaml in one session
-
-  <span class="dim">run `av doctor` for the full breakdown</span></div>
+      <blockquote class="statement reveal">
+        <p class="serif">That's not a CLI you read. That's a tool your agent calls from <em>inside its own loop</em>, before it does anything risky.</p>
+      </blockquote>
+      <div class="hosts reveal">
+        <span class="hosts-label mono">Wires into</span>
+        <div class="hosts-list">
+          <span>pi</span>
+          <span>Claude Code</span>
+          <span>Cursor</span>
+          <span>OpenCode</span>
+          <span>Codex CLI</span>
+        </div>
       </div>
     </div>
   </section>
